@@ -99,8 +99,13 @@ public class ExperimentController : MonoBehaviour
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
+        
+
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
+            //0.8秒待つ
+            yield return new WaitForSeconds(0.8f);
+
             // 2. タイトル音声再生 & オブジェクト表示6秒
             yield return StartCoroutine(FullAudioPlay(titleClips[currentIndex]));
             TargetObject[currentIndex].SetActive(true);
@@ -144,6 +149,8 @@ public class ExperimentController : MonoBehaviour
 
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
+            //0.8秒待つ
+            yield return new WaitForSeconds(0.8f);
 
             // 5. タイトル音声 → OKサイン待ち
             Debug.Log("image generation task");

@@ -6,6 +6,7 @@ public class ConeGenerator : MonoBehaviour
     public int segments = 40;        // 円周の分割数（なめらかさ）
     public float radius = 0.6f;      // 半径 60cm = 0.6m
     public float height = 3.0f;      // 高さ 3m
+    public Material mat;
 
     void Start()
     {
@@ -48,18 +49,18 @@ public class ConeGenerator : MonoBehaviour
 
         GetComponent<MeshFilter>().mesh = mesh;
 
-        // マテリアル設定（透明な青）
-        Material mat = new Material(Shader.Find("Standard"));
-        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-        mat.SetInt("_ZWrite", 0);
-        mat.DisableKeyword("_ALPHATEST_ON");
-        mat.EnableKeyword("_ALPHABLEND_ON");
-        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        mat.renderQueue = 3000;
+        // // マテリアル設定（透明な青）
+        // // Material mat = new Material(Shader.Find("Standard"));
+        // mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        // mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        // mat.SetInt("_ZWrite", 0);
+        // mat.DisableKeyword("_ALPHATEST_ON");
+        // mat.EnableKeyword("_ALPHABLEND_ON");
+        // mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        // mat.renderQueue = 3000;
 
-        mat.SetFloat("_Mode", 3); // 3 = Transparent
-        mat.color = new Color(0f, 0f, 1f, 0.3f);  // RGBA (透明度0.3の青)
+        // mat.SetFloat("_Mode", 3); // 3 = Transparent
+        // mat.color = new Color(0f, 0f, 1f, 0.3f);  // RGBA (透明度0.3の青)
 
         GetComponent<MeshRenderer>().material = mat;
         
