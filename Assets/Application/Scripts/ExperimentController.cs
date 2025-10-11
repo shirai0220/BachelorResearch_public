@@ -5,6 +5,7 @@ using UnityEngine.Windows.Speech; // Yes/No 音声認識
 using UnityEngine.XR.Interaction.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input; // MRTK3のGazeInteractor
 using System.IO;
+using System;
 
 public class ExperimentController : MonoBehaviour
 {
@@ -44,14 +45,26 @@ public class ExperimentController : MonoBehaviour
     public float minGazeTime = 0.1f;      // 100ms = 0.1秒
     private GameObject currentTarget = null;
     private float gazeStartTime = 0f;
+    private float ButtonStartTime = 0f;  //ボタンが現れた時間
     private string logFilePath;
-    private GameObject correspondingAOI = null;
+    private GameObject active_stim;
+    private GameObject stim_position = null;
 
     private GazeInteractor gazeInteractor;
+    private string exp_phase = "";
+    private string past_exp_phase = "";
+    private string StartTime;
+    private string pressed_button;
+
+    private float ok_press_time;
+    private float yes_press_time;
+    private float no_press_time;
 
     void Start()
     {
         // 初期化：全オブジェクト不可視
+
+        exp_phase = "not_exp_phase";
 
         foreach (var obj in TargetObject)
             obj.SetActive(false);
@@ -64,18 +77,29 @@ public class ExperimentController : MonoBehaviour
         foreach (var obj in AOIObject)
             obj.SetActive(true);
 
-
         // シーンから GazeInteractor を探す
         gazeInteractor = FindObjectOfType<GazeInteractor>();
 
-        // ログ保存先を設定（Application.persistentDataPath は HoloLens で使える）
-        logFilePath = Path.Combine(Application.persistentDataPath, "GazeLog.csv");
-        // ヘッダを書き込み
+        // 実行時刻をフォーマット
+        StartTime = DateTime.Now.ToString("yyyyMMdd_HHmm_ss"); 
+        // 例: 20251011_1930
+
+        // 保存先フォルダ（例: Application.persistentDataPath は HoloLensでも有効）
+        string folderPath = Application.persistentDataPath;
+
+        // ファイル名に時刻を埋め込む
+        logFilePath = Path.Combine(folderPath, $"{StartTime}_GazeLog_.csv");
+
+        Debug.Log($"ログファイル作成: {logFilePath}");
+
+        //ヘッダーの書き込み
         // オブジェクトの名前、見た秒数、対応AOIかどうか、
-        File.WriteAllText(logFilePath, "ObjectName,boolAOI,Duration,StartTime,EndTime\n");
+        File.WriteAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data\", active_stim, stim_position, area_of_fix, bool_AOI, dwell_time, time_from_start\n");
+        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"button_data\" , pressed_button, answer(only_yes_no_press), time_to_press, time_from_start\n");
         Debug.Log("ログの保存先とヘッダの書き込み：完了");
 
         //ライセンス表示をしたい！！！！！
+        //↑同意書に書けばよさそう
 
 
         // 実験開始
@@ -93,30 +117,29 @@ public class ExperimentController : MonoBehaviour
 
         //エンコードフェーズの処理
         Debug.Log("エンコードフェーズスタート");
-        File.AppendAllText(logFilePath, "EncodePhaseStart,,,,\n");
+
+        File.AppendAllText(logFilePath, $"\n<Encode_Phase>{Time.time}\n");
         // 0. 注視と中央円錐内滞在（0.5秒）
         yield return StartCoroutine(FixateAndWait());
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
-        
-
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
-            //0.8秒待つ
-            yield return new WaitForSeconds(0.8f);
-
             // 2. タイトル音声再生 & オブジェクト表示6秒
             yield return StartCoroutine(FullAudioPlay(titleClips[currentIndex]));
             TargetObject[currentIndex].SetActive(true);
-            correspondingAOI = AOIObject[currentIndex];
-
-            File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
+            exp_phase = "encode";
+            active_stim = TargetObject[currentIndex];
+            stim_position = AOIObject[currentIndex];
+            //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
             Debug.Log($"{TargetObject[currentIndex].name}");
 
             yield return EncodeObjectWait(AOIObject[currentIndex]);
 
             TargetObject[currentIndex].SetActive(false);
+            past_exp_phase = exp_phase;
+            exp_phase = "not_exp_phase";
 
             //3. 注視再固定
             yield return StartCoroutine(FixateAndWait());
@@ -145,52 +168,66 @@ public class ExperimentController : MonoBehaviour
 
         //リコールフェーズの処理
         Debug.Log("リコールフェーズスタート");
-        File.AppendAllText(logFilePath, "RecallPhaseStart,,,,\n");
+        File.AppendAllText(logFilePath, $"\n\n<Recall_Phase>{Time.time}\n");
 
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
-            //0.8秒待つ
-            yield return new WaitForSeconds(0.8f);
 
             // 5. タイトル音声 → OKサイン待ち
             Debug.Log("image generation task");
-            correspondingAOI = AOIObject[currentIndex];
-            File.AppendAllText(logFilePath, "image generation task,,,,\n");
+            stim_position = AOIObject[currentIndex];
+            File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}\n");
 
+            exp_phase = "recall -> genaration";
             yield return StartCoroutine(FullAudioPlay(titleClips[currentIndex]));
             OkButton.SetActive(true);
+            ButtonStartTime = Time.time;
 
-            File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
+            //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
             Debug.Log($"{TargetObject[currentIndex].name}");
 
             yield return StartCoroutine(WaitForOKSign());
-
             OkButton.SetActive(false);
+            
+
+            //okサインの記録
+            //ボタンを押した瞬間にexp_phaseは"not_exp_phase"になるので、past_exp_phaseを使う必要あり
+            string logEntry = $"{StartTime}, {past_exp_phase}, button_data, {pressed_button}, {ButtonStartTime - ok_press_time},{ok_press_time}\n";
+            Debug.Log(logEntry);
+            File.AppendAllText(logFilePath, logEntry);
+
 
             // 6. 質問音声 → yes/no ボタン押下待ち
             Debug.Log("image inspection task");
-            File.AppendAllText(logFilePath, "image inspection task,,,,\n");
+            File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}\n");
 
+            exp_phase = "recall -> Inspection";
             yield return StartCoroutine(FullAudioPlay(questionClips[currentIndex]));
             YesButton.SetActive(true);
             NoButton.SetActive(true);
+            ButtonStartTime = Time.time;
 
             yield return StartCoroutine(WaitForYesNoButton());
-
+            
             YesButton.SetActive(false);
             NoButton.SetActive(false);
 
             // lastResponse に "yes" または "no" が入っている
-            Debug.Log($"回答 for index {currentIndex}: {lastResponse}");
-            if (questionAnswer[currentIndex] == lastResponse){
-                string logEntry = $"answer,true,,{Time.time:F3},\n";
+            //Debug.Log($"回答 for index {currentIndex}: {lastResponse}");
+            if (questionAnswer[currentIndex] == lastResponse)
+            {
+                logEntry = $"{StartTime}, {past_exp_phase}, button_data, {pressed_button}, True, {ButtonStartTime - yes_press_time}, {yes_press_time}\n";
                 File.AppendAllText(logFilePath, logEntry);
-                Debug.Log($"answer:{logEntry}");
-            }else{
-                string logEntry = $"answer,false,,{Time.time:F3},\n";
+                //Debug.Log($"answer:{logEntry}");
+                Debug.Log(logEntry);
+            }
+            else
+            {
+                logEntry = $"{StartTime}, {past_exp_phase}, button_data, {pressed_button}, False, {ButtonStartTime - no_press_time}, {no_press_time}\n";
                 File.AppendAllText(logFilePath, logEntry);
                 Debug.Log($"answer:{logEntry}");
             }
+            File.AppendAllText(logFilePath, "\n");
             // 7. 再度注視固定
             yield return StartCoroutine(FixateAndWait());
         }
@@ -329,25 +366,35 @@ public class ExperimentController : MonoBehaviour
     public void OnOkButtonClicked()
     {
         okReceived = true;
-        string logEntry = $"OKbutton,,,{Time.time:F3},\n";
-        File.AppendAllText(logFilePath, logEntry);
-        Debug.Log($"OKボタン押下:{Time.time:F3}");
+        ok_press_time = Time.time;
+        pressed_button = "ok_button";
+        past_exp_phase = exp_phase;
+        exp_phase = "not_exp_phase";
+        //string logEntry = $"OKbutton,,,{Time.time:F3},\n";
+        //File.AppendAllText(logFilePath, logEntry);
+        //Debug.Log($"OKボタン押下:{Time.time:F3}");
 
     }
     public void OnYesButtonClicked()
     {
         yesPressed = true;
-        string logEntry = $"YESbutton,,,{Time.time:F3},\n";
-        File.AppendAllText(logFilePath, logEntry);
-        Debug.Log($"YESボタン押下:{Time.time:F3}");
+        yes_press_time = Time.time;
+        pressed_button = "yes_button";
+        past_exp_phase = exp_phase;
+        exp_phase = "not_exp_phase";
+        //File.AppendAllText(logFilePath, logEntry);
+        //Debug.Log($"YESボタン押下:{Time.time:F3}");
     }
 
     public void OnNoButtonClicked()
     {
         noPressed = true;
-        string logEntry = $"NObutton,,,{Time.time:F3},\n";
-        File.AppendAllText(logFilePath, logEntry);
-        Debug.Log($"NOボタン押下:{Time.time:F3}");
+        no_press_time = Time.time;
+        pressed_button = "no_button";
+        past_exp_phase = exp_phase;
+        exp_phase = "not_exp_phase";
+        //File.AppendAllText(logFilePath, logEntry);
+        //Debug.Log($"NOボタン押下:{Time.time:F3}");
     }
 
     // ---- エンコードフェーズのオブジェクトを見たら6秒待つ----
@@ -404,38 +451,67 @@ public class ExperimentController : MonoBehaviour
     void Update(){
         // 視線Raycast
         var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
-        if (Physics.Raycast(ray, out var hit))
+        if (Physics.Raycast(ray, out var hit) && exp_phase != "not_exp_phase")  //視線がオブジェクトに当たっている時
         {
             GameObject hitObject = hit.collider.gameObject;
 
-            if (currentTarget == null || currentTarget != hitObject){
+            if (currentTarget == null || currentTarget != hitObject)
+            {
                 // 新しいオブジェクトに視線が当たり始めた
                 currentTarget = hitObject;
                 gazeStartTime = Time.time;
             }
+            return;
         }
-        else
+        else if (currentTarget != null && exp_phase != "not_exp_phase")// 視線がどのオブジェクトにも当たっていないとき
         {
-            // 視線がどのオブジェクトにも当たっていないとき
-            if (currentTarget != null){
-                float gazeEndTime = Time.time;
-                float duration = gazeEndTime - gazeStartTime;
+            float gazeEndTime = Time.time;
+            float duration = gazeEndTime - gazeStartTime;
 
-                if (duration >= minGazeTime && currentTarget.name != "vertical" && currentTarget.name != "horizontal" && currentTarget.name != "pedestal_front" && currentTarget.name != "pedestal_right" && currentTarget.name != "pedestal_left" && currentTarget.name != "pedestal_back"){
-                    Debug.Log("currentTarget");
-                    Debug.Log(currentTarget.name);
-                    if (currentTarget == correspondingAOI) {
-                        LogGaze(currentTarget.name, "corresponding AOI", duration, gazeStartTime, gazeEndTime);
-                    }else{
-                        LogGaze(currentTarget.name, "non-corresponding AOI", duration, gazeStartTime, gazeEndTime);
-                    }
+            if (duration >= minGazeTime && currentTarget.name != "vertical" && currentTarget.name != "horizontal" && currentTarget.name != "pedestal_front" && currentTarget.name != "pedestal_right" && currentTarget.name != "pedestal_left" && currentTarget.name != "pedestal_back")
+            {
+                Debug.Log("currentTarget");
+                Debug.Log(currentTarget.name);
+
+                if (currentTarget == stim_position)
+                {
+                    LogGaze(currentTarget.name, "corresponding AOI", duration, gazeStartTime, exp_phase);
                 }
-                currentTarget = null;
+                else
+                {
+                    LogGaze(currentTarget.name, "non-corresponding AOI", duration, gazeStartTime, exp_phase);
+                }
             }
+            currentTarget = null;
+            return;
+        }
+        else if (currentTarget != null && exp_phase == "not_exp_phase")  //視線が当たっていたのに、exp_phaseが"not_exp_phase"になった場合
+        {
+            float gazeEndTime = Time.time;
+            float duration = gazeEndTime - gazeStartTime;
+
+            if (duration >= minGazeTime && currentTarget.name != "vertical" && currentTarget.name != "horizontal" && currentTarget.name != "pedestal_front" && currentTarget.name != "pedestal_right" && currentTarget.name != "pedestal_left" && currentTarget.name != "pedestal_back")
+            {
+                Debug.Log("currentTarget");
+                Debug.Log(currentTarget.name);
+
+                if (currentTarget == stim_position)
+                {
+                    LogGaze(currentTarget.name, "corresponding AOI", duration, gazeStartTime, past_exp_phase);
+                }
+                else
+                {
+                    LogGaze(currentTarget.name, "non-corresponding AOI", duration, gazeStartTime, past_exp_phase);
+                }
+            }
+            currentTarget = null;
+            return;
         }
     }
-    private void LogGaze(string objectName, string boolAOI, float duration, float startTime, float endTime){
-        string logEntry = $"{objectName},{boolAOI},{duration:F3},{startTime:F3},{endTime:F3}\n";
+    private void LogGaze(string objectName, string boolAOI, float duration, float gazeStartTime, string correct_exp_phase){
+        //objectName : 視線が当たっているオブジェクト名
+        //boolAOI : 視線が当たっているオブジェクトとアクティブなオブジェクトが一致しているかどうか
+        string logEntry = $"{StartTime}, {correct_exp_phase}, eye_data, {active_stim.name}, {stim_position.name}, {objectName}, {boolAOI}, {duration}, {gazeStartTime}\n";
         File.AppendAllText(logFilePath, logEntry);
         Debug.Log("視線ログ: " + logEntry);
     }
