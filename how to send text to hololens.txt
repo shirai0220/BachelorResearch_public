@@ -1,8 +1,0 @@
-powershell
-Invoke-RestMethod -Uri "http://<HoloLensのIP>:8080/" -Method POST -Body "Hello from PC"
-
-cmd
-curl -X POST -d "Hello from PC" http://<HoloLensのIP>:8080/
-
-Unity Playmode
-http://localhost:8080/
