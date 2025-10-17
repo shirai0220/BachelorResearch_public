@@ -553,12 +553,13 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = isLeftPinching;
                 }
 
+
+
             }else if (exp_phase == "recall -> Inspection"){
-                if (isRightPinching && isLeftPinching && (!wasRightPinching || !wasLeftPinching))
+                //OnOkActioned()を実行した直後に、人間の認知スピードでは両手のピンチを解除することはできない。そのため、両手のピンチを解除した後、片手のピンチを検知できるようにしたい。
+                if (!isRightPinching && !isLeftPinching && (!wasRightPinching || !wasLeftPinching))
                 {
-                    // 状態を更新
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    
                 }
                 // 右手のピンチ開始検出
                 else if (isRightPinching && !wasRightPinching)
