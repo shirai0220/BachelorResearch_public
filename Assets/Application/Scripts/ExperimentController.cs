@@ -552,7 +552,7 @@ public class ExperimentController : MonoBehaviour
                     wasRightPinching = isRightPinching;
                     wasLeftPinching = isLeftPinching;
                 }
-                
+
             }else if (exp_phase == "recall -> Inspection"){
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
                 if (isRightPinching && !wasRightPinching && !wasLeftPinching)
@@ -561,8 +561,9 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = isLeftPinching;
                     OnYesActioned();
 
-                }else if (isLeftPinching && !wasLeftPinching && !wasRightPinching)
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
+                }else if (isLeftPinching && !wasLeftPinching && !wasRightPinching)
+                
                 {
                     wasRightPinching = isRightPinching;
                     wasLeftPinching = isLeftPinching;
