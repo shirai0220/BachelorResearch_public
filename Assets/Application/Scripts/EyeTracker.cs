@@ -41,7 +41,7 @@ namespace EyeTrackingDemo
                 if (hit.collider.gameObject == objectOfInterest)
                 {
                     hitPointDisplayer.transform.position = hit.point;
-                   WriteTrackingPoint(hit.point);
+                    WriteTrackingPoint(hit.point);
                 }
             }
         }

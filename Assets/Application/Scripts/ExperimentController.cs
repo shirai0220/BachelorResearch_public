@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 using Microsoft.MixedReality.Toolkit.Input; // MRTK3のGazeInteractor
 using Microsoft.MixedReality.Toolkit;
+using Microsoft.MixedReality.Toolkit.Subsystems; // サブシステム管理
 using System.IO;
 using System;
 
@@ -45,6 +47,7 @@ public class ExperimentController : MonoBehaviour
     private GameObject stim_position = null;
 
     private GazeInteractor gazeInteractor;
+    private MRTKHandsAggregatorSubsystem handsAggregator;
     private string exp_phase = "";
     private string past_exp_phase = "";
     private string StartTime;
@@ -57,6 +60,8 @@ public class ExperimentController : MonoBehaviour
     // 前フレームのピンチ状態を保存
     private bool wasRightPinching = false;
     private bool wasLeftPinching = false;
+
+    private bool AudioAStopFlag = false;
 
     void Start()
     {
@@ -74,6 +79,12 @@ public class ExperimentController : MonoBehaviour
 
         // シーンから GazeInteractor を探す
         gazeInteractor = FindObjectOfType<GazeInteractor>();
+
+        // 現在実行中のHandAggregatorSubsystemを取得
+        handsAggregator = XRSubsystemHelpers.GetFirstRunningSubsystem<MRTKHandsAggregatorSubsystem>();
+        if (handsAggregator == null)
+            Debug.LogError("HandsAggregatorSubsystemが見つかりません。MRTK Input サブシステムが有効か確認してください。");
+    
 
         // 実行時刻をフォーマット
         StartTime = DateTime.Now.ToString("yyyyMMdd_HHmm_ss"); 
@@ -107,7 +118,7 @@ public class ExperimentController : MonoBehaviour
         //エンコードフェーズの説明音声
         for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
         {
-            yield return StartCoroutine(FullAudioPlay(EncodeInstructionClip[currentIndex]));
+            yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
         }
 
         //エンコードフェーズの処理
@@ -122,7 +133,7 @@ public class ExperimentController : MonoBehaviour
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
             // 2. タイトル音声再生 & オブジェクト表示6秒
-            yield return StartCoroutine(FullAudioPlay(titleClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
             TargetObject[currentIndex].SetActive(true);
             exp_phase = "encode";
             active_stim = TargetObject[currentIndex];
@@ -158,12 +169,14 @@ public class ExperimentController : MonoBehaviour
         //リコールフェーズの説明
         for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
         {
-            yield return StartCoroutine(FullAudioPlay(RecallInstructionClip[currentIndex]));
+            yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
         }
 
         //リコールフェーズの処理
         Debug.Log("リコールフェーズスタート");
         File.AppendAllText(logFilePath, $"\n\n<Recall_Phase>{Time.time}\n");
+
+        yield return StartCoroutine(FixateAndWait());
 
         for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
         {
@@ -174,7 +187,7 @@ public class ExperimentController : MonoBehaviour
             File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}\n");
 
             exp_phase = "recall -> Genaration";
-            yield return StartCoroutine(FullAudioPlay(titleClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
             ActionTimer_StartTime = Time.time;
 
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
@@ -194,7 +207,7 @@ public class ExperimentController : MonoBehaviour
             File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}\n");
 
             exp_phase = "recall -> Inspection";
-            yield return StartCoroutine(FullAudioPlay(questionClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(questionClips[currentIndex]));
             ActionTimer_StartTime = Time.time;
 
             yield return StartCoroutine(WaitForYesNoAction());
@@ -230,7 +243,7 @@ public class ExperimentController : MonoBehaviour
         Debug.Log("全タスク終了");
         for (currentIndex = 0; currentIndex < thankClips.Length; currentIndex++)
         {
-            yield return StartCoroutine(FullAudioPlay(thankClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(thankClips[currentIndex]));
         }
     }
 
@@ -355,6 +368,7 @@ public class ExperimentController : MonoBehaviour
 
     public void OnOkActioned()
     {
+        AudioAStopFlag = true;
         okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
@@ -367,17 +381,20 @@ public class ExperimentController : MonoBehaviour
     }
     public void OnYesActioned()
     {
+        AudioAStopFlag = true;
         yesReceived = true;
         yes_choice_time = Time.time;
         sign_type = "yes";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
+        AudioAStopFlag = true;
         //File.AppendAllText(logFilePath, logEntry);
         //Debug.Log($"YESボタン押下:{Time.time:F3}");
     }
 
     public void OnNoActioned()
     {
+        AudioAStopFlag = true;
         noReceived = true;
         no_choice_time = Time.time;
         sign_type = "no";
@@ -430,12 +447,25 @@ public class ExperimentController : MonoBehaviour
         return false;
     }
 
-    private IEnumerator FullAudioPlay(AudioClip audioClip)
+    private IEnumerator AudioPlay(AudioClip audioClip)
     {
+        AudioAStopFlag = false;
         //音楽を鳴らす
         audioSource.PlayOneShot(audioClip);
         //終了まで待機
-        yield return new WaitWhile(() => audioSource.isPlaying);
+        while (audioSource.isPlaying)
+        {
+            // 変数が変化したかチェック
+            if (AudioAStopFlag)
+            {
+                Debug.Log("変数変更を検知 → 音声を停止");
+                audioSource.Stop(); // 再生中断
+                yield break;        // コルーチン終了
+            }
+
+            yield return null; // 1フレーム待機
+        }
+
     }
 
     void Update()
@@ -498,9 +528,12 @@ public class ExperimentController : MonoBehaviour
 
         if (exp_phase == "recall -> Genaration" || exp_phase == "recall -> Inspection")
         {
-        // 現在のピンチ状態を取得
-            bool isRightPinching = HandPoseUtils.IsPinching(Handedness.Right);
-            bool isLeftPinching = HandPoseUtils.IsPinching(Handedness.Left);
+            // 現在のピンチ状態を取得
+            // bool isRightPinching = handsAggregator.TryGetPinchProgress(XRNode.RightHand);
+            // bool isLeftPinching = handsAggregator.TryGetPinchProgress(XRNode.LeftHand);
+            handsAggregator.TryGetPinchProgress(XRNode.RightHand, out bool isReadyToRightPinch, out bool isRightPinching, out float pinchRightAmount);
+            handsAggregator.TryGetPinchProgress(XRNode.LeftHand, out bool isReadyToLeftPinch, out bool isLeftPinching, out float pinchLeftAmount);
+            
         
 
             if (exp_phase == "recall -> Genaration")
@@ -521,8 +554,14 @@ public class ExperimentController : MonoBehaviour
                 }
 
             }else if (exp_phase == "recall -> Inspection"){
+                if (isRightPinching && isLeftPinching && (!wasRightPinching || !wasLeftPinching))
+                {
+                    // 状態を更新
+                    wasRightPinching = isRightPinching;
+                    wasLeftPinching = isLeftPinching;
+                }
                 // 右手のピンチ開始検出
-                if (isRightPinching && !wasRightPinching)
+                else if (isRightPinching && !wasRightPinching)
                 {
                     OnYesActioned();
                     wasRightPinching = false;
@@ -540,7 +579,6 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = isLeftPinching;
                 }
             }
-            
         }
     }
     private void LogGaze(string objectName, string boolAOI, float duration, float gazeStartTime, string correct_exp_phase){
