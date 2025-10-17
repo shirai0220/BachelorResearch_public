@@ -541,10 +541,10 @@ public class ExperimentController : MonoBehaviour
                 // 両手同時ピンチ検出
                 if (isRightPinching && isLeftPinching && (!wasRightPinching || !wasLeftPinching))
                 {
+                    // 状態を更新
+                    wasRightPinching = isRightPinching;
+                    wasLeftPinching = isLeftPinching;
                     OnOkActioned();
-                    // データを初期化
-                    wasRightPinching = false;
-                    wasLeftPinching = false;
                 }
                 else
                 {
@@ -552,29 +552,24 @@ public class ExperimentController : MonoBehaviour
                     wasRightPinching = isRightPinching;
                     wasLeftPinching = isLeftPinching;
                 }
-
-
-
+                
             }else if (exp_phase == "recall -> Inspection"){
-                //OnOkActioned()を実行した直後に、人間の認知スピードでは両手のピンチを解除することはできない。そのため、両手のピンチを解除した後、片手のピンチを検知できるようにしたい。
-                if (!isRightPinching && !isLeftPinching && (!wasRightPinching || !wasLeftPinching))
+                // 過去：両手notピンチ → 今：右手ピンチ開始検出
+                if (isRightPinching && !wasRightPinching && !wasLeftPinching)
                 {
-                    
-                }
-                // 右手のピンチ開始検出
-                else if (isRightPinching && !wasRightPinching)
-                {
+                    wasRightPinching = isRightPinching;
+                    wasLeftPinching = isLeftPinching;
                     OnYesActioned();
-                    wasRightPinching = false;
 
-                }else if (isLeftPinching && !wasLeftPinching)
-                // 左手のピンチ開始検出
+                }else if (isLeftPinching && !wasLeftPinching && !wasRightPinching)
+                // 過去：両手notピンチ → 今：左手のピンチ開始検出
                 {
+                    wasRightPinching = isRightPinching;
+                    wasLeftPinching = isLeftPinching;
                     OnNoActioned();
-                    wasLeftPinching = false;
                 }
                 else
-                {
+                {   
                     // 状態を更新
                     wasRightPinching = isRightPinching;
                     wasLeftPinching = isLeftPinching;
