@@ -7,7 +7,7 @@ using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Subsystems; // サブシステム管理
 using System.IO;
 using System;
-
+using System.Runtime.InteropServices;
 public class ExperimentController : MonoBehaviour
 {
     [Header("中央の注視クロスと円錐")]
@@ -39,7 +39,7 @@ public class ExperimentController : MonoBehaviour
     private string lastResponse = "";
 
     public float minGazeTime = 0.1f;      // 100ms = 0.1秒
-    private GameObject currentTarget = null;
+    private GameObject pastTarget = null;
     private float gazeStartTime = 0f;
     private float ActionTimer_StartTime = 0f;  //actionができるようになった時間
     private string logFilePath;
@@ -50,7 +50,7 @@ public class ExperimentController : MonoBehaviour
     private MRTKHandsAggregatorSubsystem handsAggregator;
     private string exp_phase = "";
     private string past_exp_phase = "";
-    private string StartTime;
+    private string AppStartTime;
     private string sign_type;
 
     private float ok_choice_time;
@@ -63,6 +63,9 @@ public class ExperimentController : MonoBehaviour
 
     private bool AudioAStopFlag = false;
 
+    private bool isAngleCounting = false;
+    private float AngleStartTime = 0f;
+
     void Start()
     {
         // 初期化：全オブジェクト不可視
@@ -73,9 +76,6 @@ public class ExperimentController : MonoBehaviour
             obj.SetActive(false);
         fixationCross.SetActive(false);
         centralCone.SetActive(false);
-        // AOIだけはアクティブにする。(ただし、オブジェクトに付随しているスクリプトにより、非表示でも衝突判定はできるようにした。)
-        foreach (var obj in AOIObject)
-            obj.SetActive(true);
 
         // シーンから GazeInteractor を探す
         gazeInteractor = FindObjectOfType<GazeInteractor>();
@@ -87,14 +87,14 @@ public class ExperimentController : MonoBehaviour
     
 
         // 実行時刻をフォーマット
-        StartTime = DateTime.Now.ToString("yyyyMMdd_HHmm_ss"); 
+        AppStartTime = DateTime.Now.ToString("yyyyMMdd_HHmm_ss"); 
         // 例: 20251011_1930
 
         // 保存先フォルダ（例: Application.persistentDataPath は HoloLensでも有効）
         string folderPath = Application.persistentDataPath;
 
         // ファイル名に時刻を埋め込む
-        logFilePath = Path.Combine(folderPath, $"{StartTime}_GazeLog_.csv");
+        logFilePath = Path.Combine(folderPath, $"{AppStartTime}_GazeLog_.csv");
 
         Debug.Log($"ログファイル作成: {logFilePath}");
 
@@ -102,6 +102,7 @@ public class ExperimentController : MonoBehaviour
         // オブジェクトの名前、見た秒数、対応AOIかどうか、
         File.WriteAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data\", active_stim, stim_position, area_of_fix, bool_AOI, dwell_time, time_from_start\n");
         File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"action_data\" , sign_type, answer(only_yes_no_action), time_to_action, time_from_start\n");
+        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data(angle)\", active_stim, stim_position, HighAngle_dwell_time, time_from_start");
         Debug.Log("ログの保存先とヘッダの書き込み：完了");
 
         //ライセンス表示をしたい！！！！！
@@ -197,9 +198,11 @@ public class ExperimentController : MonoBehaviour
             
             //okサインの記録
             //ボタンを押した瞬間にexp_phaseは"not_exp_phase"になるので、past_exp_phaseを使う必要あり
-            string logEntry = $"{StartTime}, {past_exp_phase}, action_data, {sign_type}, {ActionTimer_StartTime - ok_choice_time},{ok_choice_time}\n";
+            string logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, {ok_choice_time - ActionTimer_StartTime},{ok_choice_time}\n";
             Debug.Log(logEntry);
             File.AppendAllText(logFilePath, logEntry);
+
+            yield return new WaitForSeconds(0.5f); // 0.5秒待つ
 
 
             // 6. 質問音声 → yes/no ボタン押下待ち
@@ -207,8 +210,9 @@ public class ExperimentController : MonoBehaviour
             File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}\n");
 
             exp_phase = "recall -> Inspection";
-            yield return StartCoroutine(AudioPlay(questionClips[currentIndex]));
             ActionTimer_StartTime = Time.time;
+            yield return StartCoroutine(AudioPlay(questionClips[currentIndex]));
+            
 
             yield return StartCoroutine(WaitForYesNoAction());
             
@@ -217,18 +221,19 @@ public class ExperimentController : MonoBehaviour
             //Debug.Log($"回答 for index {currentIndex}: {lastResponse}");
             if (questionAnswer[currentIndex] == lastResponse)
             {
-                logEntry = $"{StartTime}, {past_exp_phase}, action_data, {sign_type}, True, {ActionTimer_StartTime - yes_choice_time}, {yes_choice_time}\n";
+                logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, True, {yes_choice_time - ActionTimer_StartTime}, {yes_choice_time}\n";
                 File.AppendAllText(logFilePath, logEntry);
                 //Debug.Log($"answer:{logEntry}");
                 Debug.Log(logEntry);
             }
             else
             {
-                logEntry = $"{StartTime}, {past_exp_phase}, action_data, {sign_type}, False, {ActionTimer_StartTime - no_choice_time}, {no_choice_time}\n";
+                logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, False, {no_choice_time - ActionTimer_StartTime}, {no_choice_time}\n";
                 File.AppendAllText(logFilePath, logEntry);
                 Debug.Log($"answer:{logEntry}");
             }
             File.AppendAllText(logFilePath, "\n");
+            yield return new WaitForSeconds(0.5f); // 0.5秒待つ
             
             // データを初期化
             okReceived = false;
@@ -278,6 +283,7 @@ public class ExperimentController : MonoBehaviour
 
             if (timer >= 0.5f)
             {
+                Debug.Log("ok");
                 fixationCross.SetActive(false);
                 centralCone.SetActive(false);
                 foreach (var obj in AOIObject)
@@ -303,10 +309,7 @@ public class ExperimentController : MonoBehaviour
                 // 直近の親を返す
                 hitObject = hitObject.transform.parent.gameObject;
             }
-            else
-            {
-                // 親が無いなら自分自身を返す
-            }
+
             if (hitObject == fixationCross)
             {
                 return true;
@@ -471,59 +474,123 @@ public class ExperimentController : MonoBehaviour
     void Update()
     {
         // 視線Raycast
-        var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
-        if (Physics.Raycast(ray, out var hit) && exp_phase != "not_exp_phase")  //視線がオブジェクトに当たっている時
+         // 視線の方向ベクトル（rayOriginTransform.forwardを使用）
+        Vector3 gazeDirection = gazeInteractor.rayOriginTransform.forward;
+
+        // 水平方向を基準にしたベクトル
+        Vector3 horizontalForward = new Vector3(gazeDirection.x, 0, gazeDirection.z).normalized;
+
+        // 上方向の角度（単位：度）を計算
+        float angle = Vector3.SignedAngle(horizontalForward, gazeDirection, Vector3.Cross(horizontalForward, Vector3.up));
+        
+        if (angle > 30f && exp_phase != "not_exp_phase")
+        {
+            if (!isAngleCounting){
+                isAngleCounting = true;
+                AngleStartTime = Time.time;
+                Debug.Log($"【カウント開始】角度={angle:F1}°");
+            }
+        }
+        else
+        {
+            // カウント中に閾値を下回ったら、カウント終了
+            if (isAngleCounting)
+            {
+                float AngleEndtime = Time.time;
+                float AngleDuration = AngleEndtime - AngleStartTime;
+                isAngleCounting = false;
+
+                // 0.1秒未満の短い検出は無視
+                if (AngleDuration >= 0.1f)
+                {
+                    string logEntry = $"{AppStartTime}, {exp_phase}, eye_data(angle), {active_stim.name}, {stim_position.name}, {AngleDuration}, {AngleEndtime}\n";
+                    File.AppendAllText(logFilePath, logEntry);
+                    Debug.Log("視線ログ: " + logEntry);
+                }
+            }
+        }
+
+        // var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
+        var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeDirection * 3);
+        if (Physics.Raycast(ray, out var hit))  //視線がオブジェクトに当たっている時
         {
             GameObject hitObject = hit.collider.gameObject;
 
-            if (currentTarget == null || currentTarget != hitObject)
+            if(exp_phase != "not_exp_phase")
             {
-                // 新しいオブジェクトに視線が当たり始めた
-                currentTarget = hitObject;
-                gazeStartTime = Time.time;
+                if (pastTarget == null)
+                {
+                    //以前物体を見ていなかった場合
+                    pastTarget = hitObject;
+                    gazeStartTime = Time.time;
+                }
+                else if (hitObject != pastTarget)
+                {
+                    // 新しいオブジェクトに視線が当たり始めた
+                    float gazeEndTime = Time.time;
+                    float duration = gazeEndTime - gazeStartTime;
+
+                    if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
+                    {
+                        Debug.Log("pastTarget");
+                        Debug.Log(pastTarget.name);
+
+                        if (pastTarget == stim_position)
+                        {
+                            LogGaze(pastTarget.name, "corresponding AOI", duration, gazeEndTime, exp_phase);
+                        }
+                        else
+                        {
+                            LogGaze(pastTarget.name, "non-corresponding AOI", duration, gazeEndTime, exp_phase);
+                        }
+                    }
+                    pastTarget = hitObject;
+                    gazeStartTime = Time.time;
+                }
             }
+            else if(exp_phase == "not_exp_phase" && pastTarget != null)//視線がオブジェクトに当たっている状態で、exp_phaseがnot_exp_phaseになった時
+            {
+                float gazeEndTime = Time.time;
+                float duration = gazeEndTime - gazeStartTime;
+
+                if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
+                {
+                    Debug.Log("pastTarget");
+                    Debug.Log(pastTarget.name);
+
+                    if (pastTarget == stim_position)
+                    {
+                        LogGaze(pastTarget.name, "corresponding AOI", duration, gazeEndTime, past_exp_phase);
+                    }
+                    else
+                    {
+                        LogGaze(pastTarget.name, "non-corresponding AOI", duration, gazeEndTime, past_exp_phase);
+                    }
+                }
+                pastTarget = null;
+            }
+
         }
-        else if (currentTarget != null && exp_phase != "not_exp_phase")// 視線がどのオブジェクトにも当たっていないとき
+        else if (pastTarget != null && exp_phase != "not_exp_phase")// 視線がどのオブジェクトにも当たっていないとき
         {
             float gazeEndTime = Time.time;
             float duration = gazeEndTime - gazeStartTime;
 
-            if (duration >= minGazeTime && currentTarget.name != "vertical" && currentTarget.name != "horizontal" && currentTarget.name != "pedestal_front" && currentTarget.name != "pedestal_right" && currentTarget.name != "pedestal_left" && currentTarget.name != "pedestal_back")
+            if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
             {
-                Debug.Log("currentTarget");
-                Debug.Log(currentTarget.name);
+                Debug.Log("pastTarget");
+                Debug.Log(pastTarget.name);
 
-                if (currentTarget == stim_position)
+                if (pastTarget == stim_position)
                 {
-                    LogGaze(currentTarget.name, "corresponding AOI", duration, gazeStartTime, exp_phase);
+                    LogGaze(pastTarget.name, "corresponding AOI", duration, gazeEndTime, exp_phase);
                 }
                 else
                 {
-                    LogGaze(currentTarget.name, "non-corresponding AOI", duration, gazeStartTime, exp_phase);
+                    LogGaze(pastTarget.name, "non-corresponding AOI", duration, gazeEndTime, exp_phase);
                 }
             }
-            currentTarget = null;
-        }
-        else if (currentTarget != null && exp_phase == "not_exp_phase")  //視線が当たっていたのに、exp_phaseが"not_exp_phase"になった場合
-        {
-            float gazeEndTime = Time.time;
-            float duration = gazeEndTime - gazeStartTime;
-
-            if (duration >= minGazeTime && currentTarget.name != "vertical" && currentTarget.name != "horizontal" && currentTarget.name != "pedestal_front" && currentTarget.name != "pedestal_right" && currentTarget.name != "pedestal_left" && currentTarget.name != "pedestal_back")
-            {
-                Debug.Log("currentTarget");
-                Debug.Log(currentTarget.name);
-
-                if (currentTarget == stim_position)
-                {
-                    LogGaze(currentTarget.name, "corresponding AOI", duration, gazeStartTime, past_exp_phase);
-                }
-                else
-                {
-                    LogGaze(currentTarget.name, "non-corresponding AOI", duration, gazeStartTime, past_exp_phase);
-                }
-            }
-            currentTarget = null;
+            pastTarget = null;
         }
 
         if (exp_phase == "recall -> Genaration" || exp_phase == "recall -> Inspection")
@@ -539,49 +606,50 @@ public class ExperimentController : MonoBehaviour
             if (exp_phase == "recall -> Genaration")
             {
                 // 両手同時ピンチ検出
-                if (isRightPinching && isLeftPinching && (!wasRightPinching || !wasLeftPinching))
+                if (pinchRightAmount > 0.9 && pinchLeftAmount > 0.9  && (!wasRightPinching || !wasLeftPinching))
                 {
                     // 状態を更新
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    wasRightPinching = true;
+                    wasLeftPinching = true;
                     OnOkActioned();
                 }
-                else
+                else if(!isRightPinching)
                 {
                     // 状態を更新
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    wasRightPinching = false;
+                }else if (!isLeftPinching)
+                {
+                    wasLeftPinching = false;
                 }
 
             }else if (exp_phase == "recall -> Inspection"){
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
-                if (isRightPinching && !wasRightPinching && !wasLeftPinching)
+                if (pinchRightAmount > 0.9 && !wasRightPinching && !wasLeftPinching)
                 {
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    wasRightPinching = true;
                     OnYesActioned();
 
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
-                }else if (isLeftPinching && !wasLeftPinching && !wasRightPinching)
+                }else if (pinchLeftAmount > 0.9 && !wasLeftPinching && !wasRightPinching)
                 
                 {
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    wasLeftPinching = true;
                     OnNoActioned();
                 }
-                else
+                else if(!isRightPinching && !isLeftPinching)
+                //両手がピンチを解除したとき
                 {   
                     // 状態を更新
-                    wasRightPinching = isRightPinching;
-                    wasLeftPinching = isLeftPinching;
+                    wasRightPinching = false;
+                    wasLeftPinching = false;
                 }
             }
         }
     }
-    private void LogGaze(string objectName, string boolAOI, float duration, float gazeStartTime, string correct_exp_phase){
+    private void LogGaze(string objectName, string boolAOI, float duration, float gazeEndTime, string correct_exp_phase){
         //objectName : 視線が当たっているオブジェクト名
         //boolAOI : 視線が当たっているオブジェクトとアクティブなオブジェクトが一致しているかどうか
-        string logEntry = $"{StartTime}, {correct_exp_phase}, eye_data, {active_stim.name}, {stim_position.name}, {objectName}, {boolAOI}, {duration}, {gazeStartTime}\n";
+        string logEntry = $"{AppStartTime}, {correct_exp_phase}, eye_data, {active_stim.name}, {stim_position.name}, {objectName}, {boolAOI}, {duration}, {gazeEndTime}\n";
         File.AppendAllText(logFilePath, logEntry);
         Debug.Log("視線ログ: " + logEntry);
     }
