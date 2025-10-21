@@ -61,8 +61,6 @@ public class ExperimentController : MonoBehaviour
     private bool wasRightPinching = false;
     private bool wasLeftPinching = false;
 
-    private bool AudioAStopFlag = false;
-
     private bool isAngleCounting = false;
     private float AngleStartTime = 0f;
 
@@ -185,6 +183,7 @@ public class ExperimentController : MonoBehaviour
             // 5. タイトル音声 → OKサイン待ち
             Debug.Log("image generation task");
             stim_position = AOIObject[currentIndex];
+            active_stim = TargetObject[currentIndex];
             File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}\n");
 
             exp_phase = "recall -> Genaration";
@@ -202,7 +201,7 @@ public class ExperimentController : MonoBehaviour
             Debug.Log(logEntry);
             File.AppendAllText(logFilePath, logEntry);
 
-            yield return new WaitForSeconds(0.5f); // 0.5秒待つ
+            yield return new WaitForSeconds(0.2f); // 0.5秒待つ
 
 
             // 6. 質問音声 → yes/no ボタン押下待ち
@@ -371,7 +370,6 @@ public class ExperimentController : MonoBehaviour
 
     public void OnOkActioned()
     {
-        AudioAStopFlag = true;
         okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
@@ -384,20 +382,17 @@ public class ExperimentController : MonoBehaviour
     }
     public void OnYesActioned()
     {
-        AudioAStopFlag = true;
         yesReceived = true;
         yes_choice_time = Time.time;
         sign_type = "yes";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
-        AudioAStopFlag = true;
         //File.AppendAllText(logFilePath, logEntry);
         //Debug.Log($"YESボタン押下:{Time.time:F3}");
     }
 
     public void OnNoActioned()
     {
-        AudioAStopFlag = true;
         noReceived = true;
         no_choice_time = Time.time;
         sign_type = "no";
@@ -452,22 +447,10 @@ public class ExperimentController : MonoBehaviour
 
     private IEnumerator AudioPlay(AudioClip audioClip)
     {
-        AudioAStopFlag = false;
         //音楽を鳴らす
-        audioSource.PlayOneShot(audioClip);
         //終了まで待機
-        while (audioSource.isPlaying)
-        {
-            // 変数が変化したかチェック
-            if (AudioAStopFlag)
-            {
-                Debug.Log("変数変更を検知 → 音声を停止");
-                audioSource.Stop(); // 再生中断
-                yield break;        // コルーチン終了
-            }
-
-            yield return null; // 1フレーム待機
-        }
+        audioSource.PlayOneShot(audioClip);
+        yield return null; // 1フレーム待機
 
     }
 
@@ -606,7 +589,7 @@ public class ExperimentController : MonoBehaviour
             if (exp_phase == "recall -> Genaration")
             {
                 // 両手同時ピンチ検出
-                if (pinchRightAmount > 0.9 && pinchLeftAmount > 0.9  && (!wasRightPinching || !wasLeftPinching))
+                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95  && (!wasRightPinching || !wasLeftPinching))
                 {
                     // 状態を更新
                     wasRightPinching = true;
@@ -624,13 +607,13 @@ public class ExperimentController : MonoBehaviour
 
             }else if (exp_phase == "recall -> Inspection"){
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
-                if (pinchRightAmount > 0.9 && !wasRightPinching && !wasLeftPinching)
+                if (pinchRightAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasRightPinching = true;
                     OnYesActioned();
 
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
-                }else if (pinchLeftAmount > 0.9 && !wasLeftPinching && !wasRightPinching)
+                }else if (pinchLeftAmount > 0.95 && !wasLeftPinching && !wasRightPinching)
                 
                 {
                     wasLeftPinching = true;
