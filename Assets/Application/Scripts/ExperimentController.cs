@@ -449,7 +449,9 @@ public class ExperimentController : MonoBehaviour
     {
         //音楽を鳴らす
         //終了まで待機
-        audioSource.PlayOneShot(audioClip);
+        audioSource.clip = audioClip;
+        audioSource.Play();
+        yield return new WaitWhile(() => audioSource.isPlaying);
         yield return null; // 1フレーム待機
 
     }
