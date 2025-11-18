@@ -8,9 +8,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Application/Scenes/SampleScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
+  - enabled: 0
     path: Assets/Application/Scenes/eye_movement_previous_research.unity
     guid: d9662612c8218ec4f81c2c4ccd74044f
+  - enabled: 1
+    path: Assets/Application/Scenes/eye_movement_previous_research_three_table.unity
+    guid: 697bbc0230f024e4fb5458704c030352
   m_configObjects:
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: 08679209359304343b7027f050c6b7c7, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 69ed3a4ebaef540439cd9153905634db, type: 2}

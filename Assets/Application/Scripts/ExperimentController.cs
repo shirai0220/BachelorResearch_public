@@ -15,8 +15,12 @@ public class ExperimentController : MonoBehaviour
 
     public GameObject centralCone;     // 半径60cm円錐
 
-    [Header("AOIオブジェクト（前, 後, 左, 右 の順にセット）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
+    [Header("AOIオブジェクト（表示する順番）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
     public GameObject[] AOIObject;
+
+    public GameObject leftAOI;
+    public GameObject centerAOI;
+    public GameObject rightAOI; 
 
     [Header("対象オブジェクト（前, 後, 左, 右 の順にセットしてループさせる。）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
     public GameObject[] TargetObject;
@@ -30,7 +34,6 @@ public class ExperimentController : MonoBehaviour
     public AudioClip[] titleClips;     // 各オブジェクトのタイトル
     public AudioClip[] questionClips;  // 各オブジェクトの yes/no 質問
     public string[] questionAnswer; //yes/No質問の正解
-
     public AudioClip[] thankClips; //終わりの説明
     private int currentIndex = 0;
     private bool okReceived = false;
@@ -64,6 +67,11 @@ public class ExperimentController : MonoBehaviour
     private bool isAngleCounting = false;
     private float AngleStartTime = 0f;
 
+    [SerializeField]
+    private BlackoutController blackoutController;  // Inspector で割り当てる
+
+    public GameObject camera;
+
     void Start()
     {
         // 初期化：全オブジェクト不可視
@@ -74,6 +82,7 @@ public class ExperimentController : MonoBehaviour
             obj.SetActive(false);
         fixationCross.SetActive(false);
         centralCone.SetActive(false);
+        blackoutController.notactiveBlackOut(); // 初期は非表示
 
         // シーンから GazeInteractor を探す
         gazeInteractor = FindObjectOfType<GazeInteractor>();
@@ -149,6 +158,7 @@ public class ExperimentController : MonoBehaviour
             //3. 注視再固定
             yield return StartCoroutine(FixateAndWait());
             Debug.Log("初期位置合わせ：完了");
+            yield return StartCoroutine(blackoutController.BlackoutForSeconds(8.0f));
         }
 
         // // 5~8: Yes/No 質問パート
@@ -497,9 +507,29 @@ public class ExperimentController : MonoBehaviour
 
         // var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
         var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeDirection * 3);
-        if (Physics.Raycast(ray, out var hit))  //視線がオブジェクトに当たっている時
+        Vector3 cameraPos = camera.transform.position;
+        if (Physics.Raycast(ray, out var hit) || leftAOI.Collider.ClosestPoint(cameraPos) == cameraPos || rightAOI.Collider.ClosestPoint(cameraPos) == cameraPos || centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)  //視線がオブジェクトに当たっている時、またはAOIの内側にいるとき
         {
-            GameObject hitObject = hit.collider.gameObject;
+            GameObject hitObject = null;
+
+            if(!Physics.Raycast(ray, out hit))//視線は当たっていないがオブジェクト内にあるとき
+            {
+                if(leftAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                {
+                    hitObject = leftAOI;
+                }else if(rightAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                {
+                    hitObject = rightAOI;
+                }else if(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                {
+                    hitObject = centerAOI;
+                }
+            }
+            else //視線が当たっていたら、それを視線が当たっているオブジェクトとする。
+            {
+                hitObject = hit.collider.gameObject;
+            }
+
 
             if(exp_phase != "not_exp_phase")
             {
