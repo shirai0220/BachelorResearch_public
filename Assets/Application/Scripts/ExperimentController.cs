@@ -70,7 +70,7 @@ public class ExperimentController : MonoBehaviour
     [SerializeField]
     private BlackoutController blackoutController;  // Inspector で割り当てる
 
-    public GameObject camera;
+    public Transform cameraTransform;
 
     void Start()
     {
@@ -107,9 +107,9 @@ public class ExperimentController : MonoBehaviour
 
         //ヘッダーの書き込み
         // オブジェクトの名前、見た秒数、対応AOIかどうか、
-        File.WriteAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data\", active_stim, stim_position, area_of_fix, bool_AOI, dwell_time, time_from_start\n");
-        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"action_data\" , sign_type, answer(only_yes_no_action), time_to_action, time_from_start\n");
-        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data(angle)\", active_stim, stim_position, HighAngle_dwell_time, time_from_start");
+        File.WriteAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data\", active_stim, stim_position, area_of_fix, bool_AOI, dwell_time, time_from_start(End_time)\n");
+        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"action_data\" , sign_type, answer(only_yes_no_action), time_to_action, time_from_start(End_time)\n");
+        File.AppendAllText(logFilePath, "app_start_time(ID), exp_phase, \"eye_data(angle)\", active_stim, stim_position, HighAngle_dwell_time, time_from_start(End_time)");
         Debug.Log("ログの保存先とヘッダの書き込み：完了");
 
         //ライセンス表示をしたい！！！！！
@@ -506,21 +506,28 @@ public class ExperimentController : MonoBehaviour
         }
 
         // var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
+        Vector3 cameraPos = cameraTransform.position;
+        RaycastHit hit = new RaycastHit();
         var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeDirection * 3);
-        Vector3 cameraPos = camera.transform.position;
-        if (Physics.Raycast(ray, out var hit) || leftAOI.Collider.ClosestPoint(cameraPos) == cameraPos || rightAOI.Collider.ClosestPoint(cameraPos) == cameraPos || centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)  //視線がオブジェクトに当たっている時、またはAOIの内側にいるとき
+
+
+        if (Physics.Raycast(ray, out hit) || Vector3.Distance(leftAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05 || Vector3.Distance(rightAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05 || Vector3.Distance(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05)  //視線がオブジェクトに当たっている時、またはAOIの内側にいるとき
         {
             GameObject hitObject = null;
+            // Debug.Log("111");
+            // Debug.Log(hit.collider);
+            Debug.Log(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos));
+            Debug.Log(Vector3.Distance(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos));
 
-            if(!Physics.Raycast(ray, out hit))//視線は当たっていないがオブジェクト内にあるとき
+            if(hit.collider == null)//視線は当たっていないがオブジェクト内にあるとき(厳密には、視線は当たっていないがオブジェクトの一番近い点とカメラの距離が5cm以内のとき)
             {
-                if(leftAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                if(Vector3.Distance(leftAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05)
                 {
                     hitObject = leftAOI;
-                }else if(rightAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                }else if(Vector3.Distance(rightAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05)
                 {
                     hitObject = rightAOI;
-                }else if(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos) == cameraPos)
+                }else if(Vector3.Distance(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos) < 0.05)
                 {
                     hitObject = centerAOI;
                 }
@@ -547,8 +554,10 @@ public class ExperimentController : MonoBehaviour
 
                     if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
                     {
-                        Debug.Log("pastTarget");
+                        Debug.Log("pastTarget1");
                         Debug.Log(pastTarget.name);
+                        Debug.Log("hitObject");
+                        Debug.Log(hitObject.name);
 
                         if (pastTarget == stim_position)
                         {
@@ -570,8 +579,10 @@ public class ExperimentController : MonoBehaviour
 
                 if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
                 {
-                    Debug.Log("pastTarget");
+                    Debug.Log("pastTarget2");
                     Debug.Log(pastTarget.name);
+                    Debug.Log("hitObject");
+                    Debug.Log(hitObject.name);
 
                     if (pastTarget == stim_position)
                     {
@@ -584,7 +595,6 @@ public class ExperimentController : MonoBehaviour
                 }
                 pastTarget = null;
             }
-
         }
         else if (pastTarget != null && exp_phase != "not_exp_phase")// 視線がどのオブジェクトにも当たっていないとき
         {
@@ -593,8 +603,10 @@ public class ExperimentController : MonoBehaviour
 
             if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
             {
-                Debug.Log("pastTarget");
+                Debug.Log("pastTarget3");
                 Debug.Log(pastTarget.name);
+                Debug.Log("hit.collider");
+                Debug.Log(hit.collider);
 
                 if (pastTarget == stim_position)
                 {
