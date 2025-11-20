@@ -32,6 +32,8 @@ public class ExperimentController : MonoBehaviour
     public AudioClip[] RecallInstructionClip; //リコールフェーズの指示音声
 
     public AudioClip[] titleClips;     // 各オブジェクトのタイトル
+    public AudioClip setupObjectSound;  //実オブジェクトを準備する合図
+    public AudioClip removeObjectSound; //実体オブジェクトを下げる合図
     public AudioClip[] questionClips;  // 各オブジェクトの yes/no 質問
     public string[] questionAnswer; //yes/No質問の正解
     public AudioClip[] thankClips; //終わりの説明
@@ -135,6 +137,8 @@ public class ExperimentController : MonoBehaviour
         File.AppendAllText(logFilePath, $"\n<Encode_Phase>{Time.time}\n");
         // 0. 注視と中央円錐内滞在（0.5秒）
         yield return StartCoroutine(FixateAndWait());
+        yield return StartCoroutine(AudioPlay(setupObjectSound));
+        yield return StartCoroutine(blackoutController.BlackoutForSeconds(3.0f));
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
@@ -156,9 +160,11 @@ public class ExperimentController : MonoBehaviour
             exp_phase = "not_exp_phase";
 
             //3. 注視再固定
+            yield return StartCoroutine(AudioPlay(removeObjectSound));
             yield return StartCoroutine(FixateAndWait());
             Debug.Log("初期位置合わせ：完了");
-            yield return StartCoroutine(blackoutController.BlackoutForSeconds(8.0f));
+            yield return StartCoroutine(AudioPlay(setupObjectSound));
+            yield return StartCoroutine(blackoutController.BlackoutForSeconds(3.0f));
         }
 
         // // 5~8: Yes/No 質問パート
