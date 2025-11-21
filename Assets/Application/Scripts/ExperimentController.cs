@@ -70,7 +70,7 @@ public class ExperimentController : MonoBehaviour
     private float AngleStartTime = 0f;
 
     [SerializeField]
-    private BlackoutController blackoutController;  // Inspector で割り当てる
+    private WhiteoutController whiteoutController;  // Inspector で割り当てる
 
     public Transform cameraTransform;
 
@@ -84,7 +84,7 @@ public class ExperimentController : MonoBehaviour
             obj.SetActive(false);
         fixationCross.SetActive(false);
         centralCone.SetActive(false);
-        blackoutController.notactiveBlackOut(); // 初期は非表示
+        whiteoutController.notactiveWhiteout(); // 初期は非表示
 
         // シーンから GazeInteractor を探す
         gazeInteractor = FindObjectOfType<GazeInteractor>();
@@ -138,7 +138,7 @@ public class ExperimentController : MonoBehaviour
         // 0. 注視と中央円錐内滞在（0.5秒）
         yield return StartCoroutine(FixateAndWait());
         yield return StartCoroutine(AudioPlay(setupObjectSound));
-        yield return StartCoroutine(blackoutController.BlackoutForSeconds(5.0f));
+        yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
@@ -164,7 +164,7 @@ public class ExperimentController : MonoBehaviour
             yield return StartCoroutine(FixateAndWait());
             Debug.Log("初期位置合わせ：完了");
             yield return StartCoroutine(AudioPlay(setupObjectSound));
-            yield return StartCoroutine(blackoutController.BlackoutForSeconds(5.0f));
+            yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
         }
 
         // // 5~8: Yes/No 質問パート

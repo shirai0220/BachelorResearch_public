@@ -775,26 +775,14 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 832973437}
-  - component: {fileID: 832973436}
+  - component: {fileID: 832973438}
   m_Layer: 0
-  m_Name: BlackoutController
+  m_Name: WhiteoutController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &832973436
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 832973435}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07d4bb17222c1e941a6552667a1bfc8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &832973437
 Transform:
   m_ObjectHideFlags: 0
@@ -810,6 +798,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &832973438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832973435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26dd3399ae928894a8c517fc5d5c45db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cameraTransform: {fileID: 1277512324}
 --- !u!1001 &863620568
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1702,7 +1703,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 04d3ca622ca129749826d8d22ce18eb9, type: 3}
   - {fileID: 8300000, guid: 76792b8f0e1530148967e7aa0d3b79a9, type: 3}
   - {fileID: 8300000, guid: 5027ed16e2263ce4cb10ea1a7f7ed408, type: 3}
-  - {fileID: 8300000, guid: 232c6649286e62f4b9189aa59fc816e4, type: 3}
+  - {fileID: 8300000, guid: e13f947d68abffc4a97d310ae3f1b47c, type: 3}
   - {fileID: 8300000, guid: 724256b446f479c468df0f4a241f7e5a, type: 3}
   - {fileID: 8300000, guid: 9b76098eea512764796e0bb6676a552b, type: 3}
   RecallInstructionClip:
@@ -1809,7 +1810,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 22a871e574040264da6af350467a561b, type: 3}
   - {fileID: 8300000, guid: f5f5ed01472842f49aa146822d7d1d1f, type: 3}
   minGazeTime: 0.1
-  blackoutController: {fileID: 832973436}
+  whiteoutController: {fileID: 832973438}
   cameraTransform: {fileID: 1277512324}
 --- !u!82 &1286022737
 AudioSource:
