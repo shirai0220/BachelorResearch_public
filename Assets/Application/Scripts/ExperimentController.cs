@@ -138,7 +138,7 @@ public class ExperimentController : MonoBehaviour
         // 0. 注視と中央円錐内滞在（0.5秒）
         yield return StartCoroutine(FixateAndWait());
         yield return StartCoroutine(AudioPlay(setupObjectSound));
-        yield return StartCoroutine(blackoutController.BlackoutForSeconds(3.0f));
+        yield return StartCoroutine(blackoutController.BlackoutForSeconds(5.0f));
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
@@ -164,7 +164,7 @@ public class ExperimentController : MonoBehaviour
             yield return StartCoroutine(FixateAndWait());
             Debug.Log("初期位置合わせ：完了");
             yield return StartCoroutine(AudioPlay(setupObjectSound));
-            yield return StartCoroutine(blackoutController.BlackoutForSeconds(3.0f));
+            yield return StartCoroutine(blackoutController.BlackoutForSeconds(5.0f));
         }
 
         // // 5~8: Yes/No 質問パート
@@ -200,7 +200,7 @@ public class ExperimentController : MonoBehaviour
             Debug.Log("image generation task");
             stim_position = AOIObject[currentIndex];
             active_stim = TargetObject[currentIndex];
-            File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}\n");
+            File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}_{TargetObject[currentIndex].name}\n");
 
             exp_phase = "recall -> Genaration";
             yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
@@ -222,7 +222,7 @@ public class ExperimentController : MonoBehaviour
 
             // 6. 質問音声 → yes/no ボタン押下待ち
             Debug.Log("image inspection task");
-            File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}\n");
+            File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}_{TargetObject[currentIndex].name}\n");
 
             exp_phase = "recall -> Inspection";
             ActionTimer_StartTime = Time.time;
