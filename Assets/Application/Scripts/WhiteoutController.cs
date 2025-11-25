@@ -5,6 +5,7 @@ public class WhiteoutController : MonoBehaviour
 {
     private GameObject whiteoutQuad;
     public Transform cameraTransform;
+    public Texture2D coverTexture;
 
     void Start()
     {
@@ -21,17 +22,16 @@ public class WhiteoutController : MonoBehaviour
         // カメラの子オブジェクトとして配置
         whiteoutQuad.transform.SetParent(cameraTransform);
 
-        // カメラ前方 0.3m に固定
+        // カメラ前方 0.5m に固定
         whiteoutQuad.transform.localPosition = new Vector3(0, 0, 0.3f);
         whiteoutQuad.transform.localRotation = Quaternion.identity;
 
         // 画面いっぱいに広げる（視界を完全に覆うサイズ）
-        whiteoutQuad.transform.localScale = new Vector3(5f, 5f, 1f);
+        whiteoutQuad.transform.localScale = new Vector3(1f, 1f, 1f);
 
         // 黒マテリアルを設定
-        var mat = new Material(Shader.Find("Unlit/Color"));
-        mat.color = new Color(1f, 1f, 1f, 1f); // 完全白、不透明)
-        mat.renderQueue = 5000; // 最前面に描画
+        var mat = new Material(Shader.Find("Unlit/Texture"));
+        mat.mainTexture = coverTexture;
         // mat.color = Color.black;
 
         whiteoutQuad.GetComponent<MeshRenderer>().material = mat;

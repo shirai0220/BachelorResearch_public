@@ -385,7 +385,7 @@ public class ExperimentController : MonoBehaviour
 
     // ボタン押下時に呼ばれるメソッド（Inspector の OnClicked に登録）
 
-    public void OnOkActioned()
+    public IEnumerator OnOkActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
         okReceived = true;
@@ -398,7 +398,7 @@ public class ExperimentController : MonoBehaviour
         //Debug.Log($"OKボタン押下:{Time.time:F3}");
 
     }
-    public void OnYesActioned()
+    public IEnumerator OnYesActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
         yesReceived = true;
@@ -410,7 +410,7 @@ public class ExperimentController : MonoBehaviour
         //Debug.Log($"YESボタン押下:{Time.time:F3}");
     }
 
-    public void OnNoActioned()
+    public IEnumerator OnNoActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
         noReceived = true;
