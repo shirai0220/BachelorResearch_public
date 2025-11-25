@@ -34,6 +34,7 @@ public class ExperimentController : MonoBehaviour
     public AudioClip[] titleClips;     // 各オブジェクトのタイトル
     public AudioClip setupObjectSound;  //実オブジェクトを準備する合図
     public AudioClip removeObjectSound; //実体オブジェクトを下げる合図
+    public AudioClip OkYesNoSound;
     public AudioClip[] questionClips;  // 各オブジェクトの yes/no 質問
     public string[] questionAnswer; //yes/No質問の正解
     public AudioClip[] thankClips; //終わりの説明
@@ -386,6 +387,7 @@ public class ExperimentController : MonoBehaviour
 
     public void OnOkActioned()
     {
+        yield return StartCoroutine(AudioPlay(OkYesNoSound));
         okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
@@ -398,6 +400,7 @@ public class ExperimentController : MonoBehaviour
     }
     public void OnYesActioned()
     {
+        yield return StartCoroutine(AudioPlay(OkYesNoSound));
         yesReceived = true;
         yes_choice_time = Time.time;
         sign_type = "yes";
@@ -409,6 +412,7 @@ public class ExperimentController : MonoBehaviour
 
     public void OnNoActioned()
     {
+        yield return StartCoroutine(AudioPlay(OkYesNoSound));
         noReceived = true;
         no_choice_time = Time.time;
         sign_type = "no";
