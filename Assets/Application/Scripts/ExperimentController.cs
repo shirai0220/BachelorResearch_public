@@ -15,14 +15,14 @@ public class ExperimentController : MonoBehaviour
 
     public GameObject centralCone;     // 半径60cm円錐
 
-    [Header("AOIオブジェクト（表示する順番）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
-    public GameObject[] encode_AOIObject;
-    public GameObject[] recall_AOIObject;
+    // [Header("AOIオブジェクト（表示する順番）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
+    // public GameObject[] encode_AOIObject;
+    // public GameObject[] recall_AOIObject;
     public GameObject leftAOI;
     public GameObject centerAOI;
     public GameObject rightAOI; 
 
-    [Header("対象オブジェクト（前, 後, 左, 右 の順にセットしてループさせる。）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
+    [Header("対象オブジェクト（encodeとrecallで順番が変わる。その順番に登録する。）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
     public GameObject[] encode_TargetObject;
     public GameObject[] recall_TargetObject;
 
@@ -32,12 +32,12 @@ public class ExperimentController : MonoBehaviour
 
     public AudioClip[] RecallInstructionClip; //リコールフェーズの指示音声
 
-    public AudioClip[] titleClips;     // 各オブジェクトのタイトル
+    // public AudioClip[] titleClips;     // 各オブジェクトのタイトル
     public AudioClip setupObjectSound;  //実オブジェクトを準備する合図
     public AudioClip removeObjectSound; //実体オブジェクトを下げる合図
     public AudioClip OkYesNoSound;
-    public AudioClip[] questionClips;  // 各オブジェクトの yes/no 質問
-    public string[] questionAnswer; //yes/No質問の正解
+    // public AudioClip[] questionClips;  // 各オブジェクトの yes/no 質問
+    // public string[] questionAnswer; //yes/No質問の正解
     public AudioClip[] thankClips; //終わりの説明
     private int currentIndex = 0;
     private bool okReceived = false;
@@ -82,10 +82,14 @@ public class ExperimentController : MonoBehaviour
 
         exp_phase = "not_exp_phase";
 
-        foreach (var obj in encode_TargetObject)
+        leftAOI.SetActive(false);
+        centerAOI.SetActive(false);
+        rightAOI.SetActive(false);
+
+        foreach(var obj in encode_TargetObject){
             obj.SetActive(false);
-        foreach(var obj in recall_TargetObject)
-            obj.SetActive(false);
+        }
+        
         fixationCross.SetActive(false);
         centralCone.SetActive(false);
         whiteoutController.notactiveWhiteout(); // 初期は非表示
@@ -149,15 +153,15 @@ public class ExperimentController : MonoBehaviour
         for (currentIndex = 0; currentIndex < encode_TargetObject.Length; currentIndex++)
         {
             // 2. タイトル音声再生 & オブジェクト表示6秒
-            yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(encode_TargetObject[currentIndex].GetComponent<InformationHolder>().titleClip));
             encode_TargetObject[currentIndex].SetActive(true);
             exp_phase = "encode";
             active_stim = encode_TargetObject[currentIndex];
-            stim_position = encode_AOIObject[currentIndex];
+            stim_position = encode_TargetObject[currentIndex].transform.parent.gameObject;
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
             Debug.Log($"{encode_TargetObject[currentIndex].name}");
 
-            yield return EncodeObjectWait(encode_AOIObject[currentIndex]);
+            yield return EncodeObjectWait(stim_position);
 
             encode_TargetObject[currentIndex].SetActive(false);
             past_exp_phase = exp_phase;
@@ -185,7 +189,7 @@ public class ExperimentController : MonoBehaviour
         //     yield return StartCoroutine(WaitForYesNo());
 
 
-        //リコールフェーズの説明
+        リコールフェーズの説明
         for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
         {
             yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
@@ -202,12 +206,13 @@ public class ExperimentController : MonoBehaviour
 
             // 5. タイトル音声 → OKサイン待ち
             Debug.Log("image generation task");
-            stim_position = recall_AOIObject[currentIndex];
+            stim_position = recall_TargetObject[currentIndex].transform.parent.gameObject;
             active_stim = recall_TargetObject[currentIndex];
+            var info_holder = recall_TargetObject[currentIndex].GetComponent<InformationHolder>();
             File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}_{recall_TargetObject[currentIndex].name}\n");
 
             exp_phase = "recall -> Genaration";
-            yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(info_holder.titleClip));
             ActionTimer_StartTime = Time.time;
 
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
@@ -221,7 +226,7 @@ public class ExperimentController : MonoBehaviour
             Debug.Log(logEntry);
             File.AppendAllText(logFilePath, logEntry);
 
-            yield return new WaitForSeconds(0.2f); // 0.5秒待つ
+            yield return new WaitForSeconds(0.1f); // 0.5秒待つ
 
 
             // 6. 質問音声 → yes/no ボタン押下待ち
@@ -230,7 +235,7 @@ public class ExperimentController : MonoBehaviour
 
             exp_phase = "recall -> Inspection";
             ActionTimer_StartTime = Time.time;
-            yield return StartCoroutine(AudioPlay(questionClips[currentIndex]));
+            yield return StartCoroutine(AudioPlay(info_holder.questionClip));
             
 
             yield return StartCoroutine(WaitForYesNoAction());
@@ -238,7 +243,7 @@ public class ExperimentController : MonoBehaviour
 
             // lastResponse に "yes" または "no" が入っている
             //Debug.Log($"回答 for index {currentIndex}: {lastResponse}");
-            if (questionAnswer[currentIndex] == lastResponse)
+            if (info_holder.questionAnswer == lastResponse)
             {
                 logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, True, {yes_choice_time - ActionTimer_StartTime}, {yes_choice_time}\n";
                 File.AppendAllText(logFilePath, logEntry);
@@ -252,7 +257,7 @@ public class ExperimentController : MonoBehaviour
                 Debug.Log($"answer:{logEntry}");
             }
             File.AppendAllText(logFilePath, "\n");
-            yield return new WaitForSeconds(0.5f); // 0.5秒待つ
+            yield return new WaitForSeconds(0.1f); // 0.5秒待つ
             
             // データを初期化
             okReceived = false;
@@ -367,8 +372,23 @@ public class ExperimentController : MonoBehaviour
     private IEnumerator WaitForOKAction(){
         Debug.Log("OKサイン待ち");
 
-        while (!okReceived)
+        float limit = 30f;
+        float timer = 0f;
+        while (timer < limit)
+        {
+            if (okReceived)
+            {
+                yield break;  // コルーチン終了
+            }
+            timer += Time.deltaTime;
             yield return null;
+        }
+        okReceived = true;
+        ok_choice_time = Time.time;
+        sign_type = "ok(timeout)";
+        past_exp_phase = exp_phase;
+        exp_phase = "not_exp_phase";
+        
     }
 
     private IEnumerator WaitForYesNoAction(){
@@ -392,9 +412,7 @@ public class ExperimentController : MonoBehaviour
 
     public IEnumerator OnOkActioned()
     {
-        Debug.Log("aaa");
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
-        Debug.Log("bbb");
         okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
@@ -533,8 +551,8 @@ public class ExperimentController : MonoBehaviour
             GameObject hitObject = null;
             // Debug.Log("111");
             // Debug.Log(hit.collider);
-            Debug.Log(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos));
-            Debug.Log(Vector3.Distance(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos));
+            // Debug.Log(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos));
+            // Debug.Log(Vector3.Distance(centerAOI.GetComponent<Collider>().ClosestPoint(cameraPos), cameraPos));
 
             if(hit.collider == null)//視線は当たっていないがオブジェクト内にあるとき(厳密には、視線は当たっていないがオブジェクトの一番近い点とカメラの距離が5cm以内のとき)
             {
@@ -571,10 +589,10 @@ public class ExperimentController : MonoBehaviour
 
                     if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
                     {
-                        Debug.Log("pastTarget1");
-                        Debug.Log(pastTarget.name);
-                        Debug.Log("hitObject");
-                        Debug.Log(hitObject.name);
+                        // Debug.Log("pastTarget1");
+                        // Debug.Log(pastTarget.name);
+                        // Debug.Log("hitObject");
+                        // Debug.Log(hitObject.name);
 
                         if (pastTarget == stim_position)
                         {
@@ -596,10 +614,10 @@ public class ExperimentController : MonoBehaviour
 
                 if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
                 {
-                    Debug.Log("pastTarget2");
-                    Debug.Log(pastTarget.name);
-                    Debug.Log("hitObject");
-                    Debug.Log(hitObject.name);
+                    // Debug.Log("pastTarget2");
+                    // Debug.Log(pastTarget.name);
+                    // Debug.Log("hitObject");
+                    // Debug.Log(hitObject.name);
 
                     if (pastTarget == stim_position)
                     {
@@ -620,10 +638,10 @@ public class ExperimentController : MonoBehaviour
 
             if (duration >= minGazeTime && pastTarget.name != "vertical" && pastTarget.name != "horizontal" && pastTarget.name != "pedestal_front" && pastTarget.name != "pedestal_right" && pastTarget.name != "pedestal_left" && pastTarget.name != "pedestal_back")
             {
-                Debug.Log("pastTarget3");
-                Debug.Log(pastTarget.name);
-                Debug.Log("hit.collider");
-                Debug.Log(hit.collider);
+                // Debug.Log("pastTarget3");
+                // Debug.Log(pastTarget.name);
+                // Debug.Log("hit.collider");
+                // Debug.Log(hit.collider);
 
                 if (pastTarget == stim_position)
                 {

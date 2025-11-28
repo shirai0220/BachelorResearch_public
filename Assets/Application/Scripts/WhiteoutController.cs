@@ -27,7 +27,7 @@ public class WhiteoutController : MonoBehaviour
         whiteoutQuad.transform.localRotation = Quaternion.identity;
 
         // 画面いっぱいに広げる（視界を完全に覆うサイズ）
-        whiteoutQuad.transform.localScale = new Vector3(1f, 1f, 1f);
+        whiteoutQuad.transform.localScale = new Vector3(0.74f, 0.384f, 1f);
 
         // 黒マテリアルを設定
         var mat = new Material(Shader.Find("Unlit/Texture"));
