@@ -189,7 +189,7 @@ public class ExperimentController : MonoBehaviour
         //     yield return StartCoroutine(WaitForYesNo());
 
 
-        リコールフェーズの説明
+        // リコールフェーズの説明
         for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
         {
             yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));

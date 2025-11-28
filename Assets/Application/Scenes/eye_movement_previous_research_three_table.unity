@@ -321,7 +321,7 @@ Transform:
   m_GameObject: {fileID: 114709829}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1, y: 0.98, z: 1.25}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 16908993}
@@ -2019,34 +2019,36 @@ MonoBehaviour:
   - {fileID: 8300000, guid: bcae41420bf876a4882689620fb0f3ff, type: 3}
   - {fileID: 8300000, guid: e0be6f4f3d6e22f4ca3382ce46fed50e, type: 3}
   - {fileID: 8300000, guid: a37dedc3d77b28743a4b3e9aecdac881, type: 3}
-  - {fileID: 8300000, guid: 825a6db88a2ee254ab5b5f5b016ccef7, type: 3}
+  - {fileID: 8300000, guid: 8cd00aef0645db7499ee291f995d4560, type: 3}
   - {fileID: 8300000, guid: 12a4fc56a23375c40827d5f73e174f8c, type: 3}
   - {fileID: 8300000, guid: 9b6ce911bc76b5b4b9979602a15b3c9e, type: 3}
   - {fileID: 8300000, guid: 6b18a602b29d86b44b240e334e0c652e, type: 3}
-  - {fileID: 8300000, guid: ff6be0960ebef9441acf59bff660d654, type: 3}
+  - {fileID: 8300000, guid: 856e52ba484bd1d4285262cd6b48f235, type: 3}
   - {fileID: 8300000, guid: 04d3ca622ca129749826d8d22ce18eb9, type: 3}
-  - {fileID: 8300000, guid: 76792b8f0e1530148967e7aa0d3b79a9, type: 3}
+  - {fileID: 8300000, guid: 4e6b472ec400ff146b56f2b8ee97c41e, type: 3}
   - {fileID: 8300000, guid: 5027ed16e2263ce4cb10ea1a7f7ed408, type: 3}
-  - {fileID: 8300000, guid: e13f947d68abffc4a97d310ae3f1b47c, type: 3}
+  - {fileID: 8300000, guid: e5bd3e797c4ca024f9f5210fd7656783, type: 3}
   - {fileID: 8300000, guid: 724256b446f479c468df0f4a241f7e5a, type: 3}
-  - {fileID: 8300000, guid: 9b76098eea512764796e0bb6676a552b, type: 3}
+  - {fileID: 8300000, guid: 78497a67138b01642924b0a1e7798198, type: 3}
   RecallInstructionClip:
-  - {fileID: 8300000, guid: e64b194123167694fb6ffe5cf832ae1c, type: 3}
-  - {fileID: 8300000, guid: 5e4a7354290dfab4fbec69c84944e585, type: 3}
-  - {fileID: 8300000, guid: 8d5d6d6e13935424daa8d134897df2b6, type: 3}
-  - {fileID: 8300000, guid: 31444665bfe797a4dbfe533c1dd91559, type: 3}
-  - {fileID: 8300000, guid: b76f6e2ffa8bf1f4992ed21c57ba2c6b, type: 3}
-  - {fileID: 8300000, guid: 35f59f68dbb43204a95dc6f8d9b4ec37, type: 3}
-  - {fileID: 8300000, guid: 9e2e5720a9912ec4eaf1e8b1e42baa81, type: 3}
-  - {fileID: 8300000, guid: 7a5506861a900594faabd0ce8e24dc09, type: 3}
-  - {fileID: 8300000, guid: 65128bfa7551d5c4aa0b486b507fa7d6, type: 3}
-  - {fileID: 8300000, guid: 8220b929a32922f4d8f197572d79011b, type: 3}
+  - {fileID: 8300000, guid: 667aa2a8e76535649be0988bd42a3e49, type: 3}
+  - {fileID: 8300000, guid: e9968acf688d8ca48aa7a095aad8972a, type: 3}
+  - {fileID: 8300000, guid: 95cfc7cd992224d44a2e0919617fd2c8, type: 3}
+  - {fileID: 8300000, guid: 10514a73a4d32d4448762420a066fcf1, type: 3}
+  - {fileID: 8300000, guid: 67480e201cebdea4dbfe73da51dacdd2, type: 3}
+  - {fileID: 8300000, guid: f10dfddc6be39574980b6f959999a072, type: 3}
+  - {fileID: 8300000, guid: ab1a914b62e0aad418f9d7d60e146918, type: 3}
+  - {fileID: 8300000, guid: 701e6ca6fed411e49ae4572d477d9b12, type: 3}
+  - {fileID: 8300000, guid: 8ccc2ab79a196814eb006d47e8e96317, type: 3}
+  - {fileID: 8300000, guid: 3e820a78c9c73f343b1edd8cc0c3aefa, type: 3}
+  - {fileID: 8300000, guid: c030e46f36734234c97f46425c541997, type: 3}
+  - {fileID: 8300000, guid: 327d4765efc2dd9448be77775d043dde, type: 3}
   setupObjectSound: {fileID: 8300000, guid: 2089af8cd1fe912498a274f8065ed5fd, type: 3}
   removeObjectSound: {fileID: 8300000, guid: 50b629cc6a6feb0458f4b22b5c96eb91, type: 3}
   OkYesNoSound: {fileID: 8300000, guid: 72e7ec6b3237f724aa37a13418cbf0ba, type: 3}
   thankClips:
-  - {fileID: 8300000, guid: 22a871e574040264da6af350467a561b, type: 3}
-  - {fileID: 8300000, guid: f5f5ed01472842f49aa146822d7d1d1f, type: 3}
+  - {fileID: 8300000, guid: f8da5d7c209204544885e4b65cbb9823, type: 3}
+  - {fileID: 8300000, guid: 48f60f3d576706b42bfeeae162a2c2c7, type: 3}
   minGazeTime: 0.1
   whiteoutController: {fileID: 832973438}
   cameraTransform: {fileID: 1277512324}
@@ -2441,7 +2443,7 @@ Transform:
   m_GameObject: {fileID: 1403792059}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1, y: 0.98, z: 1.248}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1572872175}
@@ -2671,7 +2673,7 @@ Transform:
   m_GameObject: {fileID: 1457640622}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.98, z: 1.25}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1136195207}
