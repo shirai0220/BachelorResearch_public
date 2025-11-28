@@ -16,14 +16,15 @@ public class ExperimentController : MonoBehaviour
     public GameObject centralCone;     // 半径60cm円錐
 
     [Header("AOIオブジェクト（表示する順番）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
-    public GameObject[] AOIObject;
-
+    public GameObject[] encode_AOIObject;
+    public GameObject[] recall_AOIObject;
     public GameObject leftAOI;
     public GameObject centerAOI;
     public GameObject rightAOI; 
 
     [Header("対象オブジェクト（前, 後, 左, 右 の順にセットしてループさせる。）")]//実際には、表示するものと場所はランダムに並び替えたうえでAOIObjectとTargetObjectを対応させて記録する。
-    public GameObject[] TargetObject;
+    public GameObject[] encode_TargetObject;
+    public GameObject[] recall_TargetObject;
 
     [Header("音声クリップ（タイトル音声、yes/no質問音声）")]
     public AudioSource audioSource;
@@ -81,7 +82,9 @@ public class ExperimentController : MonoBehaviour
 
         exp_phase = "not_exp_phase";
 
-        foreach (var obj in TargetObject)
+        foreach (var obj in encode_TargetObject)
+            obj.SetActive(false);
+        foreach(var obj in recall_TargetObject)
             obj.SetActive(false);
         fixationCross.SetActive(false);
         centralCone.SetActive(false);
@@ -143,20 +146,20 @@ public class ExperimentController : MonoBehaviour
         Debug.Log("初期位置合わせ：完了");
         // 各オブジェクトを順番に処理
 
-        for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
+        for (currentIndex = 0; currentIndex < encode_TargetObject.Length; currentIndex++)
         {
             // 2. タイトル音声再生 & オブジェクト表示6秒
             yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
-            TargetObject[currentIndex].SetActive(true);
+            encode_TargetObject[currentIndex].SetActive(true);
             exp_phase = "encode";
-            active_stim = TargetObject[currentIndex];
-            stim_position = AOIObject[currentIndex];
+            active_stim = encode_TargetObject[currentIndex];
+            stim_position = encode_AOIObject[currentIndex];
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
-            Debug.Log($"{TargetObject[currentIndex].name}");
+            Debug.Log($"{encode_TargetObject[currentIndex].name}");
 
-            yield return EncodeObjectWait(AOIObject[currentIndex]);
+            yield return EncodeObjectWait(encode_AOIObject[currentIndex]);
 
-            TargetObject[currentIndex].SetActive(false);
+            encode_TargetObject[currentIndex].SetActive(false);
             past_exp_phase = exp_phase;
             exp_phase = "not_exp_phase";
 
@@ -169,7 +172,7 @@ public class ExperimentController : MonoBehaviour
         }
 
         // // 5~8: Yes/No 質問パート
-        // for (currentIndex = 0; currentIndex < AOIObject.Length; currentIndex++)
+        // for (currentIndex = 0; currentIndex < encode_AOIObject.Length; currentIndex++)
         // {
         //     // 5. タイトル音声 → OKサイン待ち
         //     audioSource.clip = titleClips[currentIndex];
@@ -194,21 +197,21 @@ public class ExperimentController : MonoBehaviour
 
         yield return StartCoroutine(FixateAndWait());
 
-        for (currentIndex = 0; currentIndex < TargetObject.Length; currentIndex++)
+        for (currentIndex = 0; currentIndex < recall_TargetObject.Length; currentIndex++)
         {
 
             // 5. タイトル音声 → OKサイン待ち
             Debug.Log("image generation task");
-            stim_position = AOIObject[currentIndex];
-            active_stim = TargetObject[currentIndex];
-            File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}_{TargetObject[currentIndex].name}\n");
+            stim_position = recall_AOIObject[currentIndex];
+            active_stim = recall_TargetObject[currentIndex];
+            File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}_{recall_TargetObject[currentIndex].name}\n");
 
             exp_phase = "recall -> Genaration";
             yield return StartCoroutine(AudioPlay(titleClips[currentIndex]));
             ActionTimer_StartTime = Time.time;
 
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
-            Debug.Log($"{TargetObject[currentIndex].name}");
+            Debug.Log($"{recall_TargetObject[currentIndex].name}");
 
             yield return StartCoroutine(WaitForOKAction());
             
@@ -223,7 +226,7 @@ public class ExperimentController : MonoBehaviour
 
             // 6. 質問音声 → yes/no ボタン押下待ち
             Debug.Log("image inspection task");
-            File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}_{TargetObject[currentIndex].name}\n");
+            File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}_{recall_TargetObject[currentIndex].name}\n");
 
             exp_phase = "recall -> Inspection";
             ActionTimer_StartTime = Time.time;
@@ -275,8 +278,9 @@ public class ExperimentController : MonoBehaviour
         float timer = 0f;
         fixationCross.SetActive(true);
         centralCone.SetActive(true);
-        foreach (var obj in AOIObject)
-            obj.SetActive(false);
+        leftAOI.SetActive(false);
+        centerAOI.SetActive(false);
+        rightAOI.SetActive(false);
         while (true)
         {
             if (IsFixatingCentralCross())
@@ -302,8 +306,9 @@ public class ExperimentController : MonoBehaviour
                 Debug.Log("ok");
                 fixationCross.SetActive(false);
                 centralCone.SetActive(false);
-                foreach (var obj in AOIObject)
-                    obj.SetActive(true);
+                leftAOI.SetActive(true);
+                centerAOI.SetActive(true);
+                rightAOI.SetActive(true);
                 break;
             }
             yield return null;
@@ -387,7 +392,9 @@ public class ExperimentController : MonoBehaviour
 
     public IEnumerator OnOkActioned()
     {
+        Debug.Log("aaa");
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
+        Debug.Log("bbb");
         okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
@@ -648,7 +655,7 @@ public class ExperimentController : MonoBehaviour
                     // 状態を更新
                     wasRightPinching = true;
                     wasLeftPinching = true;
-                    OnOkActioned();
+                    StartCoroutine(OnOkActioned());
                 }
                 else if(!isRightPinching)
                 {
@@ -660,18 +667,23 @@ public class ExperimentController : MonoBehaviour
                 }
 
             }else if (exp_phase == "recall -> Inspection"){
+                // 今：両手ピンチ開始検出
+                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                {
+                    //何もしない
+                }
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
-                if (pinchRightAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                else if (pinchRightAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasRightPinching = true;
-                    OnYesActioned();
+                    StartCoroutine(OnYesActioned());
 
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
                 }else if (pinchLeftAmount > 0.95 && !wasLeftPinching && !wasRightPinching)
                 
                 {
                     wasLeftPinching = true;
-                    OnNoActioned();
+                    StartCoroutine(OnNoActioned());
                 }
                 else if(!isRightPinching && !isLeftPinching)
                 //両手がピンチを解除したとき
