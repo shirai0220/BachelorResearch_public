@@ -133,47 +133,47 @@ public class ExperimentController : MonoBehaviour
 
     private IEnumerator RunExperiment()
     {
-        //エンコードフェーズの説明音声
-        for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
-        {
-            yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
-        }
+        // //エンコードフェーズの説明音声
+        // for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
+        // {
+        //     yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
+        // }
 
-        //エンコードフェーズの処理
-        Debug.Log("エンコードフェーズスタート");
+        // //エンコードフェーズの処理
+        // Debug.Log("エンコードフェーズスタート");
 
-        File.AppendAllText(logFilePath, $"\n<Encode_Phase>{Time.time}\n");
-        // 0. 注視と中央円錐内滞在（0.5秒）
-        yield return StartCoroutine(FixateAndWait());
-        yield return StartCoroutine(AudioPlay(setupObjectSound));
-        yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
-        Debug.Log("初期位置合わせ：完了");
-        // 各オブジェクトを順番に処理
+        // File.AppendAllText(logFilePath, $"\n<Encode_Phase>{Time.time}\n");
+        // // 0. 注視と中央円錐内滞在（0.5秒）
+        // yield return StartCoroutine(FixateAndWait());
+        // yield return StartCoroutine(AudioPlay(setupObjectSound));
+        // yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
+        // Debug.Log("初期位置合わせ：完了");
+        // // 各オブジェクトを順番に処理
 
-        for (currentIndex = 0; currentIndex < encode_TargetObject.Length; currentIndex++)
-        {
-            // 2. タイトル音声再生 & オブジェクト表示6秒
-            yield return StartCoroutine(AudioPlay(encode_TargetObject[currentIndex].GetComponent<InformationHolder>().titleClip));
-            encode_TargetObject[currentIndex].SetActive(true);
-            exp_phase = "encode";
-            active_stim = encode_TargetObject[currentIndex];
-            stim_position = encode_TargetObject[currentIndex].transform.parent.gameObject;
-            //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
-            Debug.Log($"{encode_TargetObject[currentIndex].name}");
+        // for (currentIndex = 0; currentIndex < encode_TargetObject.Length; currentIndex++)
+        // {
+        //     // 2. タイトル音声再生 & オブジェクト表示6秒
+        //     yield return StartCoroutine(AudioPlay(encode_TargetObject[currentIndex].GetComponent<InformationHolder>().titleClip));
+        //     encode_TargetObject[currentIndex].SetActive(true);
+        //     exp_phase = "encode";
+        //     active_stim = encode_TargetObject[currentIndex];
+        //     stim_position = encode_TargetObject[currentIndex].transform.parent.gameObject;
+        //     //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
+        //     Debug.Log($"{encode_TargetObject[currentIndex].name}");
 
-            yield return EncodeObjectWait(stim_position);
+        //     yield return EncodeObjectWait(stim_position);
 
-            encode_TargetObject[currentIndex].SetActive(false);
-            past_exp_phase = exp_phase;
-            exp_phase = "not_exp_phase";
+        //     encode_TargetObject[currentIndex].SetActive(false);
+        //     past_exp_phase = exp_phase;
+        //     exp_phase = "not_exp_phase";
 
-            //3. 注視再固定
-            yield return StartCoroutine(AudioPlay(removeObjectSound));
-            yield return StartCoroutine(FixateAndWait());
-            Debug.Log("初期位置合わせ：完了");
-            yield return StartCoroutine(AudioPlay(setupObjectSound));
-            yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
-        }
+        //     //3. 注視再固定
+        //     yield return StartCoroutine(AudioPlay(removeObjectSound));
+        //     yield return StartCoroutine(FixateAndWait());
+        //     Debug.Log("初期位置合わせ：完了");
+        //     yield return StartCoroutine(AudioPlay(setupObjectSound));
+        //     yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
+        // }
 
         // // 5~8: Yes/No 質問パート
         // for (currentIndex = 0; currentIndex < encode_AOIObject.Length; currentIndex++)
