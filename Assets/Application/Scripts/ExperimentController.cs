@@ -646,8 +646,8 @@ public class ExperimentController : MonoBehaviour
             // 現在のピンチ状態を取得
             // bool isRightPinching = handsAggregator.TryGetPinchProgress(XRNode.RightHand);
             // bool isLeftPinching = handsAggregator.TryGetPinchProgress(XRNode.LeftHand);
-            handsAggregator.TryGetPinchProgress(XRNode.RightHand, out bool isReadyToRightPinch, out bool isRightPinching, out float pinchRightAmount);
-            handsAggregator.TryGetPinchProgress(XRNode.LeftHand, out bool isReadyToLeftPinch, out bool isLeftPinching, out float pinchLeftAmount);
+            bool isRightTracked = handsAggregator.TryGetPinchProgress(XRNode.RightHand, out bool isReadyToRightPinch, out bool isRightPinching, out float pinchRightAmount);
+            bool isLeftTracked = handsAggregator.TryGetPinchProgress(XRNode.LeftHand, out bool isReadyToLeftPinch, out bool isLeftPinching, out float pinchLeftAmount);
             
         
 
@@ -661,12 +661,14 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = true;
                     StartCoroutine(OnOkActioned());
                 }
-                else if(!isRightPinching)
+                else if(!isRightPinching && isRightTracked)
+                {
+                    // 状態を更新 右手検出時限定
+                    wasRightPinching = false;
+                    
+                }else if (!isLeftPinching && isLeftTracked)
                 {
                     // 状態を更新
-                    wasRightPinching = false;
-                }else if (!isLeftPinching)
-                {
                     wasLeftPinching = false;
                 }
 
@@ -689,11 +691,14 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = true;
                     StartCoroutine(OnNoActioned());
                 }
-                else if(!isRightPinching && !isLeftPinching)
+                else if(!isRightPinching && isRightTracked)
                 //両手がピンチを解除したとき
-                {   
+                {
                     // 状態を更新
                     wasRightPinching = false;
+                }
+                else if(!isLeftPinching && isLeftTracked)
+                {
                     wasLeftPinching = false;
                 }
             }
