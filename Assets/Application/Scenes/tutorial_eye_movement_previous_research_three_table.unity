@@ -588,7 +588,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5572466351762964349, guid: c25d8f2d22117bd40ad824684551fbde, type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: CustomGazeController, Assembly-CSharp
+      value: TutorialController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 5572466351762964349, guid: c25d8f2d22117bd40ad824684551fbde, type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1539,7 +1539,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5572466351762964349, guid: c25d8f2d22117bd40ad824684551fbde, type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: CustomGazeController, Assembly-CSharp
+      value: TutorialController, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 5572466351762964349, guid: c25d8f2d22117bd40ad824684551fbde, type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -2187,48 +2187,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 1286022733}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501a892be06ddec4bb05014b318ea19e, type: 3}
+  m_Script: {fileID: 11500000, guid: 3305a692c8fbb1144b791841601abd52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   leftAOI: {fileID: 114709829}
   rightAOI: {fileID: 1403792059}
   centerAOI: {fileID: 1457640622}
   proximityThreshold: 0.05
-  hoverColor:
-    r: 0
-    g: 1
-    b: 1
-    a: 1
-  gazeInteractor: {fileID: 0}
-  mainCamera: {fileID: 0}
-  currentlyHoveredObject: {fileID: 0}
-  heightInput: 
+  hoverColor: {r: 0, g: 1, b: 1, a: 1}
   leftAOI_trans: {fileID: 114709834}
   centerAOI_trans: {fileID: 1457640626}
   rightAOI_trans: {fileID: 1403792064}
   audioSource: {fileID: 1286022737}
   displayHeightText: {fileID: 1520043956}
   displayPinchText: {fileID: 1543370083}
-  lastText: 
-  pinch_action: 
-  folderPath: 
-  logFilePath: 
-  exp_phase: 
-  past_exp_phase: 
-  okReceived: 0
-  yesReceived: 0
-  noReceived: 0
-  wasRightPinching: 0
-  notRightTracked_time: 10000
-  wasLeftPinching: 0
-  notLeftTracked_time: 10000
-  isAngleCounting: 0
-  AngleStartTime: 0
   OkYesNoSound: {fileID: 8300000, guid: 72e7ec6b3237f724aa37a13418cbf0ba, type: 3}
   num_key: {fileID: 1125983122}
-  rightAOI_pos: {x: 0, y: 0, z: 0}
-  centerAOI_pos: {x: 0, y: 0, z: 0}
-  leftAOI_pos: {x: 0, y: 0, z: 0}
 --- !u!4 &1302100647 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5092507605265006331, guid: c25d8f2d22117bd40ad824684551fbde, type: 3}
