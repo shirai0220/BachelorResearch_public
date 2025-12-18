@@ -512,8 +512,7 @@ public class ExperimentController : MonoBehaviour
 
     }
 
-    void Update()
-    {
+    void Update(){
         // 視線Raycast
          // 視線の方向ベクトル（rayOriginTransform.forwardを使用）
         Vector3 gazeDirection = gazeInteractor.rayOriginTransform.forward;

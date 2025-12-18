@@ -529,9 +529,13 @@ public class TutorialController : MonoBehaviour
         }
     }
     public void press_experiment_start(){
+        StartCoroutine(switch_scene());
+    }
 
-        // ② Update を止める
+    IEnumerator switch_scene()
+    {
         enabled = false;
+        yield return null;
         SceneManager.LoadScene("eye_movement_previous_research_three_table");
     }
 
