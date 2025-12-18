@@ -664,6 +664,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: MRTK XR Rig
       objectReference: {fileID: 0}
+    - target: {fileID: 4934052698125135163, guid: 4d7e2f87fefe0ba468719b15288b46e7, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5334666798807300184, guid: 4d7e2f87fefe0ba468719b15288b46e7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6056176063914695530, guid: 4d7e2f87fefe0ba468719b15288b46e7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6519543145912274441, guid: 4d7e2f87fefe0ba468719b15288b46e7, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8479077998186684813, guid: 4d7e2f87fefe0ba468719b15288b46e7, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -4283,6 +4299,30 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.data[1].reference
+      value: Microsoft.MixedReality.Toolkit.Input.GazeInteractor, Microsoft.MixedReality.Toolkit.Input
+      objectReference: {fileID: 0}
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.data[2].reference
+      value: Microsoft.MixedReality.Toolkit.Input.GazePinchInteractor, Microsoft.MixedReality.Toolkit.Input
+      objectReference: {fileID: 0}
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.data[3].reference
+      value: Microsoft.MixedReality.Toolkit.Input.MRTKRayInteractor, Microsoft.MixedReality.Toolkit.Input
+      objectReference: {fileID: 0}
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.data[4].reference
+      value: Microsoft.MixedReality.Toolkit.IGrabInteractor, Microsoft.MixedReality.Toolkit.Core
+      objectReference: {fileID: 0}
+    - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
+      propertyPath: disabledInteractorTypes.Array.data[5].reference
+      value: Microsoft.MixedReality.Toolkit.IGrabInteractor, Microsoft.MixedReality.Toolkit.Core
+      objectReference: {fileID: 0}
     - target: {fileID: 2712310172936119071, guid: 698c502bf492aec45af6a7b04219d34b, type: 3}
       propertyPath: <OnClicked>k__BackingField.m_PersistentCalls.m_Calls.Array.size
       value: 1
