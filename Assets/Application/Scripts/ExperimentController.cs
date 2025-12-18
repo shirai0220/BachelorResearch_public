@@ -158,11 +158,11 @@ public class ExperimentController : MonoBehaviour
 
     private IEnumerator RunExperiment()
     {
-        // //エンコードフェーズの説明音声
-        // for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
-        // {
-        //     yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
-        // }
+        //エンコードフェーズの説明音声
+        for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
+        {
+            yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
+        }
 
         //エンコードフェーズの処理
         Debug.Log("エンコードフェーズスタート");
@@ -200,11 +200,11 @@ public class ExperimentController : MonoBehaviour
             yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
         }
 
-        // // リコールフェーズの説明
-        // for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
-        // {
-        //     yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
-        // }
+        // リコールフェーズの説明
+        for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
+        {
+            yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
+        }
 
         //リコールフェーズの処理
         Debug.Log("リコールフェーズスタート");
@@ -685,14 +685,34 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = true;
                     StartCoroutine(OnOkActioned());
                 }
-                else if(!isRightPinching && isRightTracked)
+
+                //　手のトラッキングが切れたときの処理
+                if (!isRightTracked && notRightTracked_time == 10000f)
                 {
-                    // 状態を更新 右手検出時限定
+                    notRightTracked_time = Time.time;
+                }
+                else if(isRightTracked)
+                {
+                    notRightTracked_time = 10000f;
+                }
+
+                if (!isLeftTracked && notLeftTracked_time == 10000f)
+                {
+                    notLeftTracked_time = Time.time;
+                }else if (isLeftTracked)
+                {
+                    notLeftTracked_time = 10000f;
+                }
+
+                // 状態を更新
+                // 手が検知できていてピンチを解除しているか、手が検知できていない状態が続いていたらfalseになる。
+                if((!isRightPinching && isRightTracked) || (!isRightTracked && (Time.time - notRightTracked_time)>0.5f))
+                {
                     wasRightPinching = false;
-                    
-                }else if (!isLeftPinching && isLeftTracked)
+                }
+
+                if((!isLeftPinching && isLeftTracked) || (!isLeftTracked && (Time.time - notLeftTracked_time)>0.5f))
                 {
-                    // 状態を更新
                     wasLeftPinching = false;
                 }
 
@@ -715,13 +735,33 @@ public class ExperimentController : MonoBehaviour
                     wasLeftPinching = true;
                     StartCoroutine(OnNoActioned());
                 }
-                else if(!isRightPinching && isRightTracked)
-                //両手がピンチを解除したとき
+
+                //　手のトラッキングが切れたときの処理
+                if (!isRightTracked && notRightTracked_time == 10000f)
                 {
-                    // 状態を更新
+                    notRightTracked_time = Time.time;
+                }
+                else if(isRightTracked)
+                {
+                    notRightTracked_time = 10000f;
+                }
+
+                if (!isLeftTracked && notLeftTracked_time == 10000f)
+                {
+                    notLeftTracked_time = Time.time;
+                }else if (isLeftTracked)
+                {
+                    notLeftTracked_time = 10000f;
+                }
+
+                // 状態を更新
+                // 手が検知できていてピンチを解除しているか、手が検知できていない状態が続いていたらfalseになる。
+                if((!isRightPinching && isRightTracked) || (!isRightTracked && (Time.time - notRightTracked_time)>0.5f))
+                {
                     wasRightPinching = false;
                 }
-                else if(!isLeftPinching && isLeftTracked)
+
+                if((!isLeftPinching && isLeftTracked) || (!isLeftTracked && (Time.time - notLeftTracked_time)>0.5f))
                 {
                     wasLeftPinching = false;
                 }

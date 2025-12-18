@@ -23,7 +23,7 @@ public class WhiteoutController : MonoBehaviour
         whiteoutQuad.transform.SetParent(cameraTransform);
 
         // カメラ前方 0.5m に固定
-        whiteoutQuad.transform.localPosition = new Vector3(0, 0, 0.3f);
+        whiteoutQuad.transform.localPosition = new Vector3(0, -0.05f, 0.5f);
         whiteoutQuad.transform.localRotation = Quaternion.identity;
 
         // 画面いっぱいに広げる（視界を完全に覆うサイズ）

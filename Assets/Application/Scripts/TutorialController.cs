@@ -110,8 +110,7 @@ public class TutorialController : MonoBehaviour
         InitializeAOIs(leftAOI, rightAOI, centerAOI);
     }
 
-    void InitializeAOIs(params GameObject[] aois)
-    {
+    void InitializeAOIs(params GameObject[] aois){
         foreach (var aoi in aois)
         {
             if (aoi != null && aoi.GetComponent<Renderer>() != null)
@@ -128,8 +127,7 @@ public class TutorialController : MonoBehaviour
         }
     }
 
-    void Update()
-    {
+    void Update(){
         // 視線判定ロジックを実行
         GameObject newHoverObject = GetHitObject();
         
@@ -275,8 +273,8 @@ public class TutorialController : MonoBehaviour
     {
         if (mainCamera == null) return null;
 
-        Vector3 cameraPos = mainCamera.transform.position;
-        Vector3 cameraForward = mainCamera.transform.forward;
+        // Vector3 cameraPos = mainCamera.transform.position;
+        // Vector3 cameraForward = mainCamera.transform.forward;
         var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
         
         RaycastHit hit;
@@ -348,7 +346,7 @@ public class TutorialController : MonoBehaviour
             exp_phase = "recall -> Inspection";
             yield return StartCoroutine(WaitForYesNoAction());
             
-            yield return new WaitForSeconds(1f); // 0.5秒待つ
+            yield return new WaitForSeconds(0.5f); // 0.5秒待つ
             
             // データを初期化
             okReceived = false;
