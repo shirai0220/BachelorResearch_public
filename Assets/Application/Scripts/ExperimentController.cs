@@ -727,10 +727,8 @@ public class ExperimentController : MonoBehaviour
                 {
                     wasRightPinching = true;
                     StartCoroutine(OnYesActioned());
-
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
-                }else if (pinchLeftAmount > 0.95 && !wasLeftPinching && !wasRightPinching)
-                
+                }else if (pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasLeftPinching = true;
                     StartCoroutine(OnNoActioned());
