@@ -5,12 +5,12 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Application/Scenes/SampleScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 0
-    path: Assets/Application/Scenes/eye_movement_previous_research.unity
-    guid: d9662612c8218ec4f81c2c4ccd74044f
+  - enabled: 1
+    path: Assets/Application/Scenes/start_eye_movement_previous_research_three_table.unity
+    guid: 517630a4c0a70eb49893e2fc816ee570
+  - enabled: 1
+    path: Assets/Application/Scenes/tutorial_eye_movement_previous_research_three_table.unity
+    guid: 2c99b18e1261cf64db33db2dd6632f2c
   - enabled: 1
     path: Assets/Application/Scenes/eye_movement_previous_research_three_table.unity
     guid: 697bbc0230f024e4fb5458704c030352

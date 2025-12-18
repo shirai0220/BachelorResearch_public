@@ -8,6 +8,7 @@ using Microsoft.MixedReality.Toolkit.Subsystems; // サブシステム管理
 using System.IO;
 using System;
 using System.Runtime.InteropServices;
+using UnityEngine.SceneManagement;
 public class ExperimentController : MonoBehaviour
 {
     [Header("中央の注視クロスと円錐")]
@@ -75,12 +76,36 @@ public class ExperimentController : MonoBehaviour
     private WhiteoutController whiteoutController;  // Inspector で割り当てる
 
     public Transform cameraTransform;
+    public HeightDataSO data;
+
 
     void Start()
     {
         // 初期化：全オブジェクト不可視
 
         exp_phase = "not_exp_phase";
+        
+        leftAOI.transform.position = new Vector3(
+            leftAOI.transform.position.x,
+            leftAOI.transform.position.y + data.diff,
+            leftAOI.transform.position.z
+        );
+
+        centerAOI.transform.position = new Vector3(
+            centerAOI.transform.position.x,
+            centerAOI.transform.position.y + data.diff,
+            centerAOI.transform.position.z
+        );
+
+        rightAOI.transform.position = new Vector3(
+            rightAOI.transform.position.x,
+            rightAOI.transform.position.y + data.diff,
+            rightAOI.transform.position.z
+        );
+        
+        // Scene nextScene = SceneManager.GetSceneByName("eye_movement_previous_research_three_table");
+        // SceneManager.SetActiveScene(nextScene);
+        // SceneManager.UnloadSceneAsync("tutorial_eye_movement_previous_research_three_table");
 
         leftAOI.SetActive(false);
         centerAOI.SetActive(false);
@@ -133,11 +158,11 @@ public class ExperimentController : MonoBehaviour
 
     private IEnumerator RunExperiment()
     {
-        //エンコードフェーズの説明音声
-        for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
-        {
-            yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
-        }
+        // //エンコードフェーズの説明音声
+        // for (currentIndex = 0; currentIndex < EncodeInstructionClip.Length; currentIndex++)
+        // {
+        //     yield return StartCoroutine(AudioPlay(EncodeInstructionClip[currentIndex]));
+        // }
 
         //エンコードフェーズの処理
         Debug.Log("エンコードフェーズスタート");
@@ -175,11 +200,11 @@ public class ExperimentController : MonoBehaviour
             yield return StartCoroutine(whiteoutController.WhiteoutForSeconds(5.0f));
         }
 
-        // リコールフェーズの説明
-        for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
-        {
-            yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
-        }
+        // // リコールフェーズの説明
+        // for (currentIndex = 0; currentIndex < RecallInstructionClip.Length; currentIndex++)
+        // {
+        //     yield return StartCoroutine(AudioPlay(RecallInstructionClip[currentIndex]));
+        // }
 
         //リコールフェーズの処理
         Debug.Log("リコールフェーズスタート");

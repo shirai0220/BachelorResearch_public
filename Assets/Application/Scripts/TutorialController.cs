@@ -8,6 +8,8 @@ using System.IO; // ファイルI/Oのために追加
 using System;    // DateTimeのために追加
 using TMPro;
 using UnityEngine.XR;
+using UnityEngine.SceneManagement;
+
 public class TutorialController : MonoBehaviour
 {
     // === 公開変数（Inspectorで設定） ===
@@ -20,7 +22,7 @@ public class TutorialController : MonoBehaviour
     public float proximityThreshold = 0.05f; // 5cm
     
     // 視線が当たっている間の色
-    public Color hoverColor = Color.cyan;
+    public Color hoverColor = Color.yellow;
 
     private GazeInteractor gazeInteractor;
     
@@ -34,6 +36,8 @@ public class TutorialController : MonoBehaviour
     public Transform centerAOI_trans;
     public Transform rightAOI_trans;
     public AudioSource audioSource;
+
+    public HeightDataSO data;
 
     // 身長データを保存するファイルパス
     // Application.persistentDataPath は、デバイス上でアプリケーションがデータを永続的に保存できる安全な場所を指します。
@@ -65,9 +69,16 @@ public class TutorialController : MonoBehaviour
     private Vector3 rightAOI_pos;
     private Vector3 centerAOI_pos;
     private Vector3 leftAOI_pos;
+    private bool get_height_flag = false;
+    private bool finish_pinch_tutorial_flag = false;
+
+    public GameObject ExperimentStartButtom;
     void Start()
     {
+        data.ResetData();
         num_key.SetActive(false);
+        ExperimentStartButtom.SetActive(false);
+
         rightAOI_pos = rightAOI_trans.position;
         centerAOI_pos = centerAOI_trans.position;
         leftAOI_pos = leftAOI_trans.position;
@@ -119,32 +130,32 @@ public class TutorialController : MonoBehaviour
 
     void Update()
     {
-        // // 視線判定ロジックを実行
-        // GameObject newHoverObject = GetHitObject();
+        // 視線判定ロジックを実行
+        GameObject newHoverObject = GetHitObject();
         
-        // // --- 色変更の処理 ---
+        // --- 色変更の処理 ---
         
-        // // 視線が外れたときの処理
-        // if (currentlyHoveredObject != null && currentlyHoveredObject != newHoverObject)
-        // {
-        //     // 元の色に戻す
-        //     if (originalColors.ContainsKey(currentlyHoveredObject))
-        //     {
-        //         currentlyHoveredObject.GetComponent<Renderer>().material.color = originalColors[currentlyHoveredObject];
-        //     }
-        //     currentlyHoveredObject = null;
-        // }
+        // 視線が外れたときの処理
+        if (currentlyHoveredObject != null && currentlyHoveredObject != newHoverObject)
+        {
+            // 元の色に戻す
+            if (originalColors.ContainsKey(currentlyHoveredObject))
+            {
+                currentlyHoveredObject.GetComponent<Renderer>().material.color = originalColors[currentlyHoveredObject];
+            }
+            currentlyHoveredObject = null;
+        }
         
-        // // 新しいオブジェクトに視線が当たったときの処理
-        // if (newHoverObject != null && newHoverObject != currentlyHoveredObject)
-        // {
-        //     // 新しい色に変更
-        //     if (originalColors.ContainsKey(newHoverObject))
-        //     {
-        //         newHoverObject.GetComponent<Renderer>().material.color = hoverColor;
-        //     }
-        //     currentlyHoveredObject = newHoverObject;
-        // }
+        // 新しいオブジェクトに視線が当たったときの処理
+        if (newHoverObject != null && newHoverObject != currentlyHoveredObject)
+        {
+            // 新しい色に変更
+            if (originalColors.ContainsKey(newHoverObject))
+            {
+                newHoverObject.GetComponent<Renderer>().material.color = hoverColor;
+            }
+            currentlyHoveredObject = newHoverObject;
+        }
 
         if (exp_phase == "recall -> Genaration" || exp_phase == "recall -> Inspection")
         {
@@ -252,69 +263,56 @@ public class TutorialController : MonoBehaviour
 
     private void SavediffToFile(float diff)
     {
-        try
-        {
-            // CSV形式でコンマ区切り、改行文字(\n)を最後に追加
-            string dataLine = $"{diff.ToString()}";
-
-            // ファイルにデータを追記（Append）
-            File.WriteAllText(logFilePath, dataLine);
-            
-            Debug.Log("身長データをファイルに記録しました: " + dataLine.Trim());
-        }
-        catch (Exception e)
-        {
-            Debug.LogError($"ファイルへの記録中にエラーが発生しました: {e.Message}");
-        }
+        data.diff = diff;
     }
 
 
 
-    // /// <summary>
-    // /// ご提示いただいた視線判定ロジックを実装します。
-    // /// </summary>
-    // private GameObject GetHitObject()
-    // {
-    //     if (mainCamera == null) return null;
-
-    //     Vector3 cameraPos = mainCamera.transform.position;
-    //     Vector3 cameraForward = mainCamera.transform.forward;
-    //     var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
-        
-    //     RaycastHit hit;
-    //     GameObject hitObject = null;
-
-    //     // 1. Raycast判定 (真っ直ぐな視線が当たっているか)
-    //     bool isRaycastHit = Physics.Raycast(ray, out hit);
-        
-    //     if (isRaycastHit)
-    //     {
-    //         // Raycastが当たっていたら、そのオブジェクトを優先する
-    //         hitObject = hit.collider.gameObject;
-    //     }
-    //     else // 2. Raycastが当たっていない場合（近接判定）
-    //     {
-    //         // 視線は当たっていないが、オブジェクトが近接閾値内にあるかチェック
-    //         if (IsClosestPointNear(leftAOI, cameraPos, proximityThreshold))
-    //         {
-    //             hitObject = leftAOI;
-    //         }
-    //         else if (IsClosestPointNear(rightAOI, cameraPos, proximityThreshold))
-    //         {
-    //             hitObject = rightAOI;
-    //         }
-    //         else if (IsClosestPointNear(centerAOI, cameraPos, proximityThreshold))
-    //         {
-    //             hitObject = centerAOI;
-    //         }
-    //     }
-        
-    //     return hitObject;
-    // }
-
     /// <summary>
-    /// オブジェクトのColliderからカメラに最も近い点までの距離が閾値内にあるかを判定します。
+    /// ご提示いただいた視線判定ロジックを実装します。
     /// </summary>
+    private GameObject GetHitObject()
+    {
+        if (mainCamera == null) return null;
+
+        Vector3 cameraPos = mainCamera.transform.position;
+        Vector3 cameraForward = mainCamera.transform.forward;
+        var ray = new Ray(gazeInteractor.rayOriginTransform.position, gazeInteractor.rayOriginTransform.forward * 3);
+        
+        RaycastHit hit;
+        GameObject hitObject = null;
+
+        // 1. Raycast判定 (真っ直ぐな視線が当たっているか)
+        bool isRaycastHit = Physics.Raycast(ray, out hit);
+        
+        if (isRaycastHit)
+        {
+            // Raycastが当たっていたら、そのオブジェクトを優先する
+            hitObject = hit.collider.gameObject;
+        }
+        // else // 2. Raycastが当たっていない場合（近接判定）
+        // {
+        //     // 視線は当たっていないが、オブジェクトが近接閾値内にあるかチェック
+        //     if (IsClosestPointNear(leftAOI, cameraPos, proximityThreshold))
+        //     {
+        //         hitObject = leftAOI;
+        //     }
+        //     else if (IsClosestPointNear(rightAOI, cameraPos, proximityThreshold))
+        //     {
+        //         hitObject = rightAOI;
+        //     }
+        //     else if (IsClosestPointNear(centerAOI, cameraPos, proximityThreshold))
+        //     {
+        //         hitObject = centerAOI;
+        //     }
+        // }
+        
+        return hitObject;
+    }
+
+    // / <summary>
+    // / オブジェクトのColliderからカメラに最も近い点までの距離が閾値内にあるかを判定します。
+    // / </summary>
     // private bool IsClosestPointNear(GameObject aoi, Vector3 cameraPosition, float threshold)
     // {
     //     if (aoi == null) return false;
@@ -358,6 +356,12 @@ public class TutorialController : MonoBehaviour
             noReceived = false;
         }
         displayPinchText.text = "finish";
+        
+        finish_pinch_tutorial_flag = true;
+
+        if(get_height_flag && finish_pinch_tutorial_flag){
+            ExperimentStartButtom.SetActive(true);
+        }
     }
         
     private IEnumerator WaitForOKAction(){
@@ -509,8 +513,14 @@ public class TutorialController : MonoBehaviour
 
         SavediffToFile(diff);
         Debug.Log($"rightAOI_pos.y = {rightAOI_pos.y}");
+
+        get_height_flag = true;
+
+        if(get_height_flag && finish_pinch_tutorial_flag){
+            ExperimentStartButtom.SetActive(true);
+        }
     }
-        public void press_backspace()
+    public void press_backspace()
     {
         if(lastText.Length > 0)
         {
@@ -518,4 +528,11 @@ public class TutorialController : MonoBehaviour
             displayHeightText.text = lastText;
         }
     }
+    public void press_experiment_start(){
+
+        // ② Update を止める
+        enabled = false;
+        SceneManager.LoadScene("eye_movement_previous_research_three_table");
+    }
+
 }
