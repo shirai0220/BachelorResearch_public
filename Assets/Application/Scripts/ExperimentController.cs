@@ -67,7 +67,9 @@ public class ExperimentController : MonoBehaviour
 
     // 前フレームのピンチ状態を保存
     private bool wasRightPinching = false;
+    private float notRightTracked_time = 10000f;
     private bool wasLeftPinching = false;
+    private float notLeftTracked_time = 10000f;
 
     private bool isAngleCounting = false;
     private float AngleStartTime = 0f;
