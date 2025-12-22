@@ -36,14 +36,7 @@ public class TutorialController : MonoBehaviour
     public Transform centerAOI_trans;
     public Transform rightAOI_trans;
     public AudioSource audioSource;
-
     public HeightDataSO data;
-
-    // 身長データを保存するファイルパス
-    // Application.persistentDataPath は、デバイス上でアプリケーションがデータを永続的に保存できる安全な場所を指します。
-    // HoloLens 2の実機では、このパスが適切に動作します。
-    private const string FileName = "HeightData.csv";
-
     public TextMeshProUGUI displayHeightText;
     public TextMeshProUGUI displayPinchText;
     private string lastText = "";
@@ -103,9 +96,6 @@ public class TutorialController : MonoBehaviour
         handsAggregator = XRSubsystemHelpers.GetFirstRunningSubsystem<MRTKHandsAggregatorSubsystem>();
         if (handsAggregator == null)
             Debug.LogError("HandsAggregatorSubsystemが見つかりません。MRTK Input サブシステムが有効か確認してください。");
-
-        logFilePath = Path.Combine(folderPath, FileName);
-        File.WriteAllText(logFilePath, "");
 
         InitializeAOIs(leftAOI, rightAOI, centerAOI);
     }
@@ -168,7 +158,7 @@ public class TutorialController : MonoBehaviour
             if (exp_phase == "recall -> Genaration")
             {
                 // 両手同時ピンチ検出
-                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95  && (!wasRightPinching || !wasLeftPinching))
+                if (pinchRightAmount > 0.99 && pinchLeftAmount > 0.99  && (!wasRightPinching || !wasLeftPinching))
                 {
                     // 状態を更新
                     wasRightPinching = true;
@@ -208,19 +198,19 @@ public class TutorialController : MonoBehaviour
 
             }else if (exp_phase == "recall -> Inspection"){
                 // 今：両手ピンチ開始検出
-                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                if (pinchRightAmount > 0.99 && pinchLeftAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     //何もしない
                 }
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
-                else if (pinchRightAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                else if (pinchRightAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasRightPinching = true;
                     StartCoroutine(OnYesActioned());
 
 
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
-                }else if (pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                }else if (pinchLeftAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasLeftPinching = true;
                     StartCoroutine(OnNoActioned());

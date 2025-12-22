@@ -224,9 +224,9 @@ public class ExperimentController : MonoBehaviour
             var info_holder = recall_TargetObject[currentIndex].GetComponent<InformationHolder>();
             File.AppendAllText(logFilePath, $"<Image_Generation_Task>{Time.time}_{recall_TargetObject[currentIndex].name}\n");
 
-            exp_phase = "recall -> Genaration";
             yield return StartCoroutine(AudioPlay(info_holder.titleClip));
             ActionTimer_StartTime = Time.time;
+            exp_phase = "recall -> Genaration";
 
             //File.AppendAllText(logFilePath, $"{TargetObject[currentIndex].name},,,,\n");
             Debug.Log($"{recall_TargetObject[currentIndex].name}");
@@ -246,10 +246,9 @@ public class ExperimentController : MonoBehaviour
             Debug.Log("image inspection task");
             File.AppendAllText(logFilePath, $"<Image_Inspection_Task>{Time.time}_{recall_TargetObject[currentIndex].name}\n");
 
-            exp_phase = "recall -> Inspection";
-            ActionTimer_StartTime = Time.time;
             yield return StartCoroutine(AudioPlay(info_holder.questionClip));
-            
+            ActionTimer_StartTime = Time.time;
+            exp_phase = "recall -> Inspection";
 
             yield return StartCoroutine(WaitForYesNoAction());
             
@@ -258,16 +257,29 @@ public class ExperimentController : MonoBehaviour
             //Debug.Log($"回答 for index {currentIndex}: {lastResponse}");
             if (info_holder.questionAnswer == lastResponse)
             {
-                logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, True, {yes_choice_time - ActionTimer_StartTime}, {yes_choice_time}\n";
-                File.AppendAllText(logFilePath, logEntry);
-                //Debug.Log($"answer:{logEntry}");
-                Debug.Log(logEntry);
+                if(lastResponse == "yes"){
+                    logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, True, {yes_choice_time - ActionTimer_StartTime}, {yes_choice_time}\n";
+                    File.AppendAllText(logFilePath, logEntry);
+                    //Debug.Log($"answer:{logEntry}");
+                    Debug.Log(logEntry);
+                }else{
+                    logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, True, {no_choice_time - ActionTimer_StartTime}, {no_choice_time}\n";
+                    File.AppendAllText(logFilePath, logEntry);
+                    Debug.Log($"answer:{logEntry}");
+                }
             }
             else
             {
-                logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, False, {no_choice_time - ActionTimer_StartTime}, {no_choice_time}\n";
-                File.AppendAllText(logFilePath, logEntry);
-                Debug.Log($"answer:{logEntry}");
+                if(lastResponse == "yes"){
+                    logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, False, {yes_choice_time - ActionTimer_StartTime}, {yes_choice_time}\n";
+                    File.AppendAllText(logFilePath, logEntry);
+                    //Debug.Log($"answer:{logEntry}");
+                    Debug.Log(logEntry);
+                }else{
+                    logEntry = $"{AppStartTime}, {past_exp_phase}, action_data, {sign_type}, False, {no_choice_time - ActionTimer_StartTime}, {no_choice_time}\n";
+                    File.AppendAllText(logFilePath, logEntry);
+                    Debug.Log($"answer:{logEntry}");
+                }
             }
             File.AppendAllText(logFilePath, "\n");
             yield return new WaitForSeconds(0.1f); // 0.5秒待つ
@@ -396,11 +408,11 @@ public class ExperimentController : MonoBehaviour
             timer += Time.deltaTime;
             yield return null;
         }
-        okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok(timeout)";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
+        okReceived = true;
         
     }
 
@@ -426,11 +438,11 @@ public class ExperimentController : MonoBehaviour
     public IEnumerator OnOkActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
-        okReceived = true;
         ok_choice_time = Time.time;
         sign_type = "ok";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
+        okReceived = true;
         //string logEntry = $"OKbutton,,,{Time.time:F3},\n";
         //File.AppendAllText(logFilePath, logEntry);
         //Debug.Log($"OKボタン押下:{Time.time:F3}");
@@ -439,11 +451,11 @@ public class ExperimentController : MonoBehaviour
     public IEnumerator OnYesActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
-        yesReceived = true;
         yes_choice_time = Time.time;
         sign_type = "yes";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
+        yesReceived = true;
         //File.AppendAllText(logFilePath, logEntry);
         //Debug.Log($"YESボタン押下:{Time.time:F3}");
     }
@@ -451,11 +463,11 @@ public class ExperimentController : MonoBehaviour
     public IEnumerator OnNoActioned()
     {
         yield return StartCoroutine(AudioPlay(OkYesNoSound));
-        noReceived = true;
         no_choice_time = Time.time;
         sign_type = "no";
         past_exp_phase = exp_phase;
         exp_phase = "not_exp_phase";
+        noReceived = true;
         //File.AppendAllText(logFilePath, logEntry);
         //Debug.Log($"NOボタン押下:{Time.time:F3}");
     }
@@ -680,7 +692,7 @@ public class ExperimentController : MonoBehaviour
             if (exp_phase == "recall -> Genaration")
             {
                 // 両手同時ピンチ検出
-                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95  && (!wasRightPinching || !wasLeftPinching))
+                if (pinchRightAmount > 0.99 && pinchLeftAmount > 0.99  && (!wasRightPinching || !wasLeftPinching))
                 {
                     // 状態を更新
                     wasRightPinching = true;
@@ -720,17 +732,17 @@ public class ExperimentController : MonoBehaviour
 
             }else if (exp_phase == "recall -> Inspection"){
                 // 今：両手ピンチ開始検出
-                if (pinchRightAmount > 0.95 && pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                if (pinchRightAmount > 0.99 && pinchLeftAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     //何もしない
                 }
                 // 過去：両手notピンチ → 今：右手ピンチ開始検出
-                else if (pinchRightAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                else if (pinchRightAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasRightPinching = true;
                     StartCoroutine(OnYesActioned());
                 // 過去：両手notピンチ → 今：左手のピンチ開始検出
-                }else if (pinchLeftAmount > 0.95 && !wasRightPinching && !wasLeftPinching)
+                }else if (pinchLeftAmount > 0.99 && !wasRightPinching && !wasLeftPinching)
                 {
                     wasLeftPinching = true;
                     StartCoroutine(OnNoActioned());
