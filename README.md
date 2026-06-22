@@ -7,7 +7,6 @@ Hololen2にビルドすることを想定して作成しました。
   <img src="https://github.com/user-attachments/assets/2e577735-8a5c-4eab-a318-d638e49f580b" alt="HoloLens 1" width="32%" />
   <img src="https://github.com/user-attachments/assets/83cd48cd-be39-4084-8931-fc7f8fec2687" alt="HoloLens 3" width="32%" />
   <img src="https://github.com/user-attachments/assets/d43c2ec2-41d7-4c9e-8035-5ba3e4f14217" alt="HoloLens 2" width="32%" />
-  
 </p>
 
 【主な機能】
